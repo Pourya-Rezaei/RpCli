@@ -11,7 +11,7 @@ async function createSessions(token: string): Promise<string> {
 
 	const payload = await response.json()
 	assertValidTokenResponse(response, payload)
-	return payload.data.biz_data.id
+	return payload.data.biz_data.chat_session.id
 }
 
 export default createSessions
