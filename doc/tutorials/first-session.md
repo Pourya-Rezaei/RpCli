@@ -1,55 +1,55 @@
-# اولین نشست تعاملی
+# Your First Interactive Session
 
-در این آموزش یک پرسش کم‌خطر درباره مخزن می‌پرسید و شناسه ادامه نشست را نگه می‌دارید.
-پیش‌نیاز، تکمیل [نصب](installation.md) و بازکردن ترمینال در پوشه پروژه است.
-برای تمرین، مخزنی بدون اسرار یا داده حساس انتخاب کنید.
+In this tutorial, you ask a low-risk question about a repository and retain the ID needed to resume the session.
+First complete [installation](installation.md) and open a terminal in the project directory.
+For this exercise, choose a repository without secrets or sensitive data.
 
-## ۱. گفتگو را باز کنید
+## 1. Open the Chat
 
 ```sh
 rc
 ```
 
-نشست جدید ابتدا پرامپت سیستم را به سرویس می‌فرستد؛ این مرحله می‌تواند شبکه مصرف کند.
-دستور `/help` را وارد کنید تا فرمان‌های واقعی همین نسخه نمایش داده شوند.
-برای این تمرین حالت `normal` را نگه دارید.
-اگر نیاز به تغییر حالت دارید، TAB چرخه `normal → yolo → plan` را طی می‌کند.
+A new session first sends the system prompt to the service; this step can use the network.
+Enter `/help` to display the commands actually available in this version.
+Keep `normal` mode for this exercise.
+If you need to change modes, TAB cycles through `normal → yolo → plan`.
 
-## ۲. درخواست محدود بدهید
+## 2. Make a Bounded Request
 
 ```text
-ساختار پوشه source را بررسی کن و فقط نقش سه فایل اصلی را توضیح بده. هیچ فایلی را تغییر نده.
+Inspect the structure of the source directory and explain only the roles of three main files. Do not change any files.
 ```
 
-دستور طبیعی بالا محدودیت خواسته‌شده شماست، نه جایگزین کنترل اجرایی.
-خواندن‌ها ممکن است بدون تأیید جداگانه انجام شوند.
-برای هر تغییر پیشنهادی، نام ابزار و پیش‌نمایش را پیش از تأیید بخوانید.
-در پنجره تأیید ابزار، Enter نیز تأیید است؛ برای رد از `n` استفاده کنید.
-ارجاع `@path` فقط متن مسیر را درج می‌کند و محتوای فایل را خودکار ضمیمه نمی‌کند.
+The natural-language instruction above expresses your requested constraint; it does not replace runtime enforcement.
+Reads may occur without separate confirmation.
+For each proposed change, read the tool name and preview before confirming.
+In the tool confirmation dialog, Enter also means approval; use `n` to reject.
+An `@path` reference inserts only the path text and does not automatically attach file contents.
 
-## ۳. پاسخ را ارزیابی کنید
+## 3. Evaluate the Response
 
-نام فایل‌ها را با مخزن تطبیق دهید و برای ادعاهای مهم شاهد بخواهید.
-اگر کار به سقف دور ابزار رسید، `/continue` درخواست ادامه کار را ارسال می‌کند.
-این فرمان سقف را حذف نمی‌کند؛ یک نوبت تازه آغاز می‌شود.
-برای مسیر برنامه‌ریزی، [گردش‌کار تعاملی](../guides/interactive-workflows.md) را بخوانید.
+Check file names against the repository and ask for evidence for important claims.
+If the task reaches the tool-round limit, `/continue` sends a request to continue the work.
+This command does not remove the limit; it starts a new turn.
+For the planning workflow, read [interactive workflows](../guides/interactive-workflows.md).
 
-## ۴. خارج شوید و برگردید
+## 4. Exit and Return
 
-با `/exit` خارج شوید و شناسه درج‌شده در پیام خروج را نگه دارید.
-سپس با شناسه واقعی خود اجرا کنید:
+Exit with `/exit` and retain the ID shown in the exit message.
+Then run the following with your actual ID:
 
 ```sh
 rc resume SESSION_ID
 ```
 
-رونوشت محلی و تاریخچه دوردست دو چیز متفاوت‌اند؛ بازیابی تضمین بازپخش کامل نیست.
-خاموش‌بودن `/logging` مانع ذخیره رونوشت تعاملی نمی‌شود.
-جزئیات در [بازیابی و مدل](../guides/resume-and-model-switching.md) و [نمایه](../README.md) است.
+The local transcript and remote history are different things; resuming does not guarantee a complete replay.
+Disabling `/logging` does not prevent the interactive transcript from being saved.
+See [resuming and model switching](../guides/resume-and-model-switching.md) and the [index](../README.md) for details.
 
-## شواهد و اعتبار
+## Evidence and Validity
 
-مالک چرخه: [source/components/chat/useChatSession.ts](../../source/components/chat/useChatSession.ts)، `useChatSession`.
-مالک کنترل: [source/components/chat/useComposerKeys.ts](../../source/components/chat/useComposerKeys.ts)، `useComposerKeys`.
-مالک فرمان‌ها: [source/commands/index.ts](../../source/commands/index.ts)، `slashCommands`.
-نسخه مبنا: **0.10.1**؛ بازبینی: **2026-10-28**؛ تحلیل ایستا، بدون آزمون اجرایی DeepSeek.
+Lifecycle owner: [source/components/chat/useChatSession.ts](../../source/components/chat/useChatSession.ts), `useChatSession`.
+Control owner: [source/components/chat/useComposerKeys.ts](../../source/components/chat/useComposerKeys.ts), `useComposerKeys`.
+Command owner: [source/commands/index.ts](../../source/commands/index.ts), `slashCommands`.
+Baseline version: **0.10.1**; review: **2026-10-28**; static analysis, without live DeepSeek testing.

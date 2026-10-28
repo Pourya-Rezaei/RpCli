@@ -1,53 +1,53 @@
-# نگهداری مستندات مبتنی بر شاهد
+# Maintaining Evidence-Based Documentation
 
-این راهنما برای جلوگیری از فاصله گرفتن آموزش‌ها از رفتار نسخه جاری است.
-هر ادعای رفتاری باید مالک کد، نسخه و نوع اعتبارسنجی روشن داشته باشد.
+This guide helps prevent tutorials from drifting away from the current version's behavior.
+Every behavioral claim must identify its code owner, version, and validation method clearly.
 
-## مالکیت محتوا
+## Content Ownership
 
-آموزش‌ها مسیر یادگیری کوتاه با نتیجه قابل بررسی ارائه می‌کنند.
-راهنماها یک کار مشخص را حل می‌کنند؛ جدول کامل قرارداد را تکرار نکنید.
-مراجع مالک گزینه‌ها، نوع‌ها، پیش‌فرض‌ها و محدودیت‌های دقیق هستند.
-توضیح معماری باید چرایی و جریان را شرح دهد، نه جایگزین دستور اجرا شود.
-مسیر ورود خواننده [نمایه مستندات](../README.md) است.
+Tutorials provide a short learning path with a verifiable outcome.
+Guides solve a specific task; do not repeat the complete contract table.
+References own options, types, defaults, and precise limitations.
+Architecture explanations should describe rationale and flow, not replace execution instructions.
+The reader's entry point is the [documentation index](../README.md).
 
-## از تغییر کد به تغییر سند
+## From Code Changes to Documentation Changes
 
-برای گزینه و routing از [source/cli.tsx](../../source/cli.tsx)، `cli` و `firstArg` شروع کنید.
-تغییر آن را در [مرجع CLI](../reference/cli.md) و آموزش متأثر منعکس کنید.
-برای فرمان‌ها، مالک `slashCommands` در [source/commands/index.ts](../../source/commands/index.ts) است.
-فهرست کامل فقط در [کلیدها و فرمان‌ها](../reference/keyboard-and-slash-commands.md) نگه داشته شود.
-برای ذخیره‌سازی، `tokenConfigPath` و `saveModelPreference` را در [source/core/TokenConfig.ts](../../source/core/TokenConfig.ts) بررسی کنید.
-تغییر آن‌ها به [تنظیمات و ذخیره‌سازی](../reference/configuration-and-storage.md) مربوط است.
-برای ابزارها، registry را با dispatcher و parser بخوانید، نه فقط متن پرامپت.
-مالک توضیح `getToolDescriptions` در [source/tools/registry.ts](../../source/tools/registry.ts) است.
-برای HTTP، مسیرها را با `buildCompletionPrompt` و صف نشست تطبیق دهید.
-مالک ورودی [source/server/request.ts](../../source/server/request.ts) است؛ قرارداد در [مرجع HTTP](../reference/http-api.md).
+For options and routing, start with [source/cli.tsx](../../source/cli.tsx), `cli`, and `firstArg`.
+Reflect changes in the [CLI reference](../reference/cli.md) and affected tutorial.
+For commands, the owner is `slashCommands` in [source/commands/index.ts](../../source/commands/index.ts).
+Keep the complete list only in [keys and commands](../reference/keyboard-and-slash-commands.md).
+For storage, inspect `tokenConfigPath` and `saveModelPreference` in [source/core/TokenConfig.ts](../../source/core/TokenConfig.ts).
+Changes to them belong in [configuration and storage](../reference/configuration-and-storage.md).
+For tools, read the registry together with the dispatcher and parser, not just the prompt text.
+Descriptions are owned by `getToolDescriptions` in [source/tools/registry.ts](../../source/tools/registry.ts).
+For HTTP, cross-check routes against `buildCompletionPrompt` and the session queue.
+Input is owned by [source/server/request.ts](../../source/server/request.ts); the contract is in the [HTTP reference](../reference/http-api.md).
 
-## چک‌لیست هر بازبینی
+## Checklist for Every Review
 
-۱. نسخه و تاریخ را از وضعیت واقعی ثبت کنید؛ تاریخ تازه به معنی آزمون تازه نیست.
-۲. نماد تصمیم‌گیر را بخوانید، نه فقط help، README یا توضیح مدل را.
-۳. میان رفتار اجباری runtime و دستور پرامپت تمایز بگذارید.
-۴. نمونه‌های shell را با پوشه کاری، اثر جانبی و نیاز توکن مشخص کنید.
-۵. برای سرور از loopback و برای رازها از placeholder استفاده کنید.
-۶. وجود مقصد پیوندها و بسته‌بودن حصارهای کد را بررسی کنید.
-۷. ادعاهای آزمون را با فرمان و نتیجه واقعی همراه کنید؛ تحلیل ایستا را جدا بنویسید.
-۸. اختلاف حل‌نشده را در [محدودیت‌ها](../reference/known-limitations.md) آشکار نگه دارید.
+1. Record the version and date from the actual state; a new date does not mean new testing.
+2. Read the decision-making symbol, not just help, README, or the model's explanation.
+3. Distinguish runtime-enforced behavior from prompt instructions.
+4. Specify the working directory, side effects, and token requirements for shell examples.
+5. Use loopback for the server and placeholders for secrets.
+6. Check that link targets exist and code fences are closed.
+7. Accompany test claims with actual commands and results; describe static analysis separately.
+8. Keep unresolved discrepancies visible in [known limitations](../reference/known-limitations.md).
 
-## دام‌های مستندسازی این نسخه
+## Documentation Pitfalls in This Version
 
-توکن وب را API key رسمی ننامید و `DEEPSEEK_API_KEY` را قرارداد برنامه معرفی نکنید.
-از `--plan` یا فرمان‌های اسلش تغییر حالت به عنوان قابلیت موجود مثال نزنید.
-logging اختیاری را با رونوشت پایدار تعاملی یکی نگیرید.
-`-a` در تولید پیام commit، staging انجام نمی‌دهد.
-سرور مبتنی بر آخرین پیام و نشست مشترک را سازگار کامل OpenAI معرفی نکنید.
-حداقل اعلام‌شده Node.js 18 را از توصیه وابستگی‌محور 22+ جدا کنید.
-تعداد فعلی ۱۲ آزمون تعریف‌شده است، نه نتیجه اجرای موفق.
-نسخه‌های قدیمی README و راهنمای عامل ممکن است با کد اختلاف داشته باشند؛ کد ملاک ادعای رفتار است.
+Do not call the web token an official API key or present `DEEPSEEK_API_KEY` as part of the application's contract.
+Do not use `--plan` or mode-switching slash commands as examples of existing features.
+Do not conflate optional logging with the persistent interactive transcript.
+`-a` does not stage files when generating commit messages.
+Do not present a server based on the last message and a shared session as fully OpenAI-compatible.
+Distinguish the declared Node.js 18 minimum from the dependency-based recommendation of 22+.
+The current count is 12 defined tests, not a successful execution result.
+Older versions of the README and agent guide may disagree with the code; the code is the basis for behavioral claims.
 
-## شواهد و اعتبار
+## Evidence and Validity
 
-پرامپت‌ها از [source/prompts/index.ts](../../source/prompts/index.ts)، `SystemPrompt` بارگذاری می‌شوند؛ [مرجع پرامپت‌ها](../reference/prompts.md).
-برای پوشش اجرایی [آزمون](testing.md) و برای ساخت [آماده‌سازی](setup-and-scripts.md) را ببینید.
-نسخه مبنا: **0.10.1**؛ بازبینی: **2026-10-28**؛ تحلیل ایستا، بدون آزمون اجرایی DeepSeek.
+Prompts are loaded through [source/prompts/index.ts](../../source/prompts/index.ts), `SystemPrompt`; see the [prompt reference](../reference/prompts.md).
+For execution coverage, see [testing](testing.md); for building, see [setup](setup-and-scripts.md).
+Baseline version: **0.10.1**; review: **2026-10-28**; static analysis, without live DeepSeek testing.

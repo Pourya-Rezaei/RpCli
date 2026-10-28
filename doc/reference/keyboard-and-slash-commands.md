@@ -1,57 +1,57 @@
-# فرمان‌ها و صفحه‌کلید
+# Commands and Keyboard
 
-نسخه `0.10.1`، بررسی کد در `2026-10-28`؛ رفتار ترمینال واقعی در این مرحله آزمایش نشده است.
+Version `0.10.1`, code reviewed on `2026-10-28`; actual terminal behavior was not tested at this stage.
 
-## فرمان‌های ثبت‌شده
+## Registered Commands
 
-مالک: `slashCommands` و `resolveSlashCommand` در [commands/index.ts](../../source/commands/index.ts). تطبیق پس از trim و lowercase و به‌صورت کامل است؛ parser آرگومان عمومی برای slash command ندارد.
+Owner: `slashCommands` and `resolveSlashCommand` in [commands/index.ts](../../source/commands/index.ts). Matching is exact after trimming and lowercasing; there is no general argument parser for slash commands.
 
-| فرمان | نام دیگر | اثر |
+| Command | Alias | Effect |
 | --- | --- | --- |
-| `/init` | ندارد | ارسال prompt تولید AGENTS و تلاش بارگذاری مجدد فایل پس از پاسخ |
-| `/continue` | ندارد | ارسال ContinuePrompt برای ادامهٔ کار قبلی |
-| `/clear` | ندارد | reset گفتگو؛ حذف transcript قبلی، نه پاک‌کردن todoها |
-| `/help` | ندارد | نمایش کمک تولیدشده از registry فرمان‌ها |
-| `/search` | ندارد | تغییر وضعیت جستجوی وب |
-| `/thinking` | ندارد | تغییر وضعیت thinking |
-| `/logging` | `/log` | تغییر ذخیرهٔ لاگ تشخیصی و preference آن |
-| `/todos` | ندارد | نمایش فهرست todo حافظه‌ای |
-| `/model` | ندارد | جابه‌جایی default و expert با روند تأیید رابط |
-| `/exit` | `/quit` | درخواست خروج برنامه |
+| `/init` | None | Send the AGENTS-generation prompt and attempt to reload the file after the response |
+| `/continue` | None | Send ContinuePrompt to continue previous work |
+| `/clear` | None | Reset chat and delete the previous transcript, not the todos |
+| `/help` | None | Display help generated from the command registry |
+| `/search` | None | Toggle web search |
+| `/thinking` | None | Toggle thinking |
+| `/logging` | `/log` | Toggle diagnostic logging and its preference |
+| `/todos` | None | Display the in-memory todo list |
+| `/model` | None | Switch between default and expert through the interface confirmation flow |
+| `/exit` | `/quit` | Request application exit |
 
-`/plan`، `/normal` و `/yolo` ثبت نشده‌اند. `/clear` سابقهٔ نمایش را با پاک‌کردن کل messages یکی نمی‌گیرد؛ logo دیگری اضافه می‌شود و state نشست بازنشانی می‌شود. اثر فرمان‌ها در [InteractiveChatView.tsx](../../source/components/InteractiveChatView.tsx)، داخل `runCommand` قرار دارد.
+`/plan`, `/normal`, and `/yolo` are not registered. `/clear` does not treat display history as clearing all messages; another logo is added and session state is reset. Command effects are implemented in `runCommand` in [InteractiveChatView.tsx](../../source/components/InteractiveChatView.tsx).
 
-## ورود متن و حالت
+## Text Entry and Mode
 
-مالک: [useComposerKeys.ts](../../source/components/chat/useComposerKeys.ts) و [textCursor.ts](../../source/core/textCursor.ts).
+Owners: [useComposerKeys.ts](../../source/components/chat/useComposerKeys.ts) and [textCursor.ts](../../source/core/textCursor.ts).
 
-| کلید | اثر در composer فعال |
+| Key | Effect in the Active Composer |
 | --- | --- |
-| TAB | چرخهٔ normal → yolo → plan → normal |
-| جهت چپ/راست | حرکت بر پایهٔ مرز grapheme |
-| Ctrl یا Meta همراه چپ/راست | حرکت واژه‌ای |
-| Home / End | ابتدا/انتهای خط |
-| Ctrl+Up / Ctrl+Down | ابتدا/انتهای متن |
-| Up / Down | خط مجاور، در محدودهٔ متن چندخطی |
-| Backspace / Delete | حذف پیش/پس از مکان‌نما |
-| Ctrl همراه حذف | حذف واژه‌ای؛ تشخیص Backspace به encoding ترمینال هم وابسته است |
+| TAB | Cycle normal -> yolo -> plan -> normal |
+| Left/Right arrow | Move along grapheme boundaries |
+| Ctrl or Meta with Left/Right | Move by word |
+| Home / End | Start/end of line |
+| Ctrl+Up / Ctrl+Down | Start/end of text |
+| Up / Down | Adjacent line within multiline text |
+| Backspace / Delete | Delete before/after the cursor |
+| Ctrl with deletion | Delete by word; Backspace detection also depends on terminal encoding |
 
-TAB هنگام picker، loading یا تأیید فعال الزاماً چرخهٔ mode را اجرا نمی‌کند؛ hook composer در این وضعیت‌ها غیرفعال است. ورودی و submit همچنین از component textarea و Ink اثر می‌گیرند؛ این جدول ادعای سازگاری کامل با همهٔ terminal emulatorها نیست.
+TAB does not necessarily cycle modes while a picker, loading state, or confirmation is active; the composer hook is disabled in those states. Input and submission are also affected by the textarea component and Ink; this table does not claim complete compatibility with every terminal emulator.
 
-## اسکرول، توقف و خروج
+## Scrolling, Stopping, and Exiting
 
-مالک: handler عمومی `useInput` در [InteractiveChatView.tsx](../../source/components/InteractiveChatView.tsx).
+Owner: the general `useInput` handler in [InteractiveChatView.tsx](../../source/components/InteractiveChatView.tsx).
 
-- PageUp و PageDown در نبود picker، `scrollBy(-1)` و `scrollBy(1)` می‌زنند؛ جهش یک صفحهٔ کامل پیاده نشده است.
-- Ctrl+Home و Ctrl+End ابتدا و انتهای نمایش گفتگو را هدف می‌گیرند.
-- Esc هنگام loading درخواست توقف می‌دهد؛ اگر initialization موفق نشده باشد، توقف فوری تمام کارهای upstream تضمین نمی‌شود.
-- Ctrl+C هنگام loading توقف را درخواست می‌کند؛ در حالت idle با متن موجود، ابتدا متن را پاک می‌کند.
-- Ctrl+C با ورودی خالی و نشست موجود ابتدا پیام resume را نمایش می‌دهد؛ فشار بعدی خروج با کد 130 را درخواست می‌کند.
+- PageUp and PageDown call `scrollBy(-1)` and `scrollBy(1)` when no picker is active; full-page jumps are not implemented.
+- Ctrl+Home and Ctrl+End target the start and end of the chat display.
+- Esc requests a stop while loading; if initialization has not succeeded, immediately stopping all upstream work is not guaranteed.
+- Ctrl+C requests a stop while loading; when idle with existing text, it clears the text first.
+- Ctrl+C with empty input and an existing session first displays the resume message; the next press requests exit with code 130.
 
-## انتخاب‌گر و تأیید
+## Pickers and Confirmation
 
-[FzfFilePicker.tsx](../../source/components/FzfFilePicker.tsx) fuzzy matcher داخلی دارد؛ اجرای executable خارجی fzf لازم نیست. انتخاب فایل فقط متن `@path` را وارد composer می‌کند و محتوای فایل را خودکار attach نمی‌کند. [SlashCommandPicker.tsx](../../source/components/SlashCommandPicker.tsx) برای انتخاب فرمان ثبت‌شده است.
+[FzfFilePicker.tsx](../../source/components/FzfFilePicker.tsx) has an internal fuzzy matcher; an external fzf executable is not required. Selecting a file only inserts `@path` into the composer and does not automatically attach its contents. [SlashCommandPicker.tsx](../../source/components/SlashCommandPicker.tsx) selects registered commands.
 
-پنجره‌های [ToolConfirmation.tsx](../../source/components/ToolConfirmation.tsx)، [PlanConfirmation.tsx](../../source/components/chat/PlanConfirmation.tsx) و [ModelConfirmation.tsx](../../source/components/chat/ModelConfirmation.tsx) قراردادهای جدا دارند. تأیید ابزار با `y` یا Enter و رد با `n` انجام می‌شود؛ Enter در اینجا تأیید است، نه گزینهٔ پیش‌فرض امنِ رد. plan با Enter یا y آغاز و با Esc یا n رد می‌شود؛ مدل با Enter تأیید و Esc لغو می‌شود.
+The [ToolConfirmation.tsx](../../source/components/ToolConfirmation.tsx), [PlanConfirmation.tsx](../../source/components/chat/PlanConfirmation.tsx), and [ModelConfirmation.tsx](../../source/components/chat/ModelConfirmation.tsx) dialogs have separate contracts. Tools are approved with `y` or Enter and rejected with `n`; Enter approves here rather than providing a safe rejection default. A plan starts with Enter or y and is rejected with Esc or n; a model change is confirmed with Enter and canceled with Esc.
 
-پذیرش plan، حالت قبلی غیرplan را برمی‌گرداند؛ اگر قبل از plan در yolo بوده‌اید، اجرای برنامه هم می‌تواند در yolo شروع شود. برای اثر mode بر ابزارها [local-tools.md](local-tools.md) را ببینید.
+Accepting a plan restores the previous non-plan mode; if you were in yolo before plan, execution of the plan can also start in yolo. See [local-tools.md](local-tools.md) for the effects of modes on tools.

@@ -1,79 +1,79 @@
-# رابط‌ها و نمادهای مهم
+# Important Interfaces and Symbols
 
-این صفحه راهنمای پیدا کردن نقاط اتصال معماری است، نه فهرست همهٔ متغیرهای خصوصی. نسخه `0.10.1`، تاریخ `2026-10-28`؛ شواهد از کد استخراج شده‌اند.
+This page locates architectural integration points rather than listing every private variable. Version `0.10.1`, reviewed `2026-10-28`; evidence was derived from code.
 
-## وضعیت API عمومی
+## Public API Status
 
-[package.json](../../package.json) executable به نام `rc` و files برابر dist دارد؛ `exports` برای SDK پایدار تعریف نشده است. export شدن یک تابع در TypeScript به معنی تضمین سازگاری برای مصرف‌کنندهٔ بیرونی نیست. import مستقیم مسیرهای داخلی، قرارداد عمومی مستندشدهٔ پکیج محسوب نمی‌شود.
+[package.json](../../package.json) defines the executable `rc` and sets files to dist; no `exports` contract is defined for a stable SDK. A TypeScript function export does not guarantee compatibility for external consumers. Direct imports of internal paths are not a documented public package contract.
 
-## عامل و API client
+## Agent and API Client
 
-| ماژول | رابط | مسئولیت و نکته |
+| Module | Interface | Responsibility and Qualification |
 | --- | --- | --- |
-| [agent.ts](../../source/actions/agent.ts) | `ChatMode` | normal، yolo، plan |
-| همان ماژول | `AIResponseOptions` | token، prompt، callbackها، mode و گزینه‌های مدل/ابزار |
-| همان ماژول | `getChatSystemPrompt` | آماده‌سازی prompt زمینهٔ عامل |
-| همان ماژول | `getAIResponse` | نسل جدید، حلقهٔ ابزار و نتیجهٔ نهایی |
-| [apiClient.ts](../../source/core/apiClient.ts) | `SendMessageOptions`, default `sendMessage` | ارسال بالادستی، PoW و پیشبرد parent |
-| همان ماژول | `beginGeneration`, `isGenerationStopped`, `stopCurrentGeneration` | کنترل یک نسل و علامت توقف |
-| همان ماژول | `resetChatSession`, `getCurrentSessionId`, `setCurrentSessionId` | state مشترک سطح module |
-| همان ماژول | `chatSessionExists` | بررسی نشست در سرویس؛ متکی به شبکه |
+| [agent.ts](../../source/actions/agent.ts) | `ChatMode` | normal, yolo, plan |
+| Same module | `AIResponseOptions` | Token, prompt, callbacks, mode, and model/tool options |
+| Same module | `getChatSystemPrompt` | Prepare the agent context prompt |
+| Same module | `getAIResponse` | New generation, tool loop, and final result |
+| [apiClient.ts](../../source/core/apiClient.ts) | `SendMessageOptions`, default `sendMessage` | Upstream sending, PoW, and advancing the parent |
+| Same module | `beginGeneration`, `isGenerationStopped`, `stopCurrentGeneration` | Control a generation and its stop flag |
+| Same module | `resetChatSession`, `getCurrentSessionId`, `setCurrentSessionId` | Shared module-level state |
+| Same module | `chatSessionExists` | Check for a session on the service; network-dependent |
 
-state API client متعلق به یک instance گفتگو به‌صورت کلاس مستقل نیست. ایجاد چند caller در همان پردازش به‌تنهایی جداسازی ایجاد نمی‌کند. مدل‌های server، CLI و transcript را نباید یک نوع دادهٔ واحد فرض کرد.
+API-client state does not belong to an independent chat-instance class. Creating multiple callers within one process does not itself provide isolation. Server, CLI, and transcript models should not be treated as a single data type.
 
-## transport پایین‌دستی
+## Lower-Level Transport
 
-نمایهٔ exportها: [core-lib/index.ts](../../core-lib/index.ts).
+Export index: [core-lib/index.ts](../../core-lib/index.ts).
 
-| export | ماژول مالک | مسئولیت |
+| Export | Owning Module | Responsibility |
 | --- | --- | --- |
-| `chat`, `ChatResult`, `ChatStreamChunk` | [Chat.ts](../../core-lib/Chat.ts) | completion، SSE، metadata و ادامهٔ پاسخ |
-| `continueChat` | [ContinueChat.ts](../../core-lib/ContinueChat.ts) | درخواست continuation و بدنهٔ stream |
-| `stopStream` | [StopStream.ts](../../core-lib/StopStream.ts) | درخواست توقف پاسخ remote |
-| `createSessions` | [CreateSessions.ts](../../core-lib/CreateSessions.ts) | ایجاد نشست |
-| `chatSessions`, `ChatSession` | [ChatSessions.ts](../../core-lib/ChatSessions.ts) | فهرست نشست‌های حساب |
-| `deleteSession` | [DeleteSession.ts](../../core-lib/DeleteSession.ts) | ارسال درخواست حذف |
-| `createPowChallenge` | [CreatePowChallenge.ts](../../core-lib/CreatePowChallenge.ts) | دریافت چالش پیش از completion |
-| `InvalidTokenError`, `assertValidTokenResponse`, `isInvalidTokenError` | [InvalidTokenError.ts](../../core-lib/InvalidTokenError.ts) | طبقه‌بندی خطای اعتبارنامه |
+| `chat`, `ChatResult`, `ChatStreamChunk` | [Chat.ts](../../core-lib/Chat.ts) | Completion, SSE, metadata, and response continuation |
+| `continueChat` | [ContinueChat.ts](../../core-lib/ContinueChat.ts) | Continuation request and stream body |
+| `stopStream` | [StopStream.ts](../../core-lib/StopStream.ts) | Request remote response cancellation |
+| `createSessions` | [CreateSessions.ts](../../core-lib/CreateSessions.ts) | Create a session |
+| `chatSessions`, `ChatSession` | [ChatSessions.ts](../../core-lib/ChatSessions.ts) | List account sessions |
+| `deleteSession` | [DeleteSession.ts](../../core-lib/DeleteSession.ts) | Send a deletion request |
+| `createPowChallenge` | [CreatePowChallenge.ts](../../core-lib/CreatePowChallenge.ts) | Obtain a challenge before completion |
+| `InvalidTokenError`, `assertValidTokenResponse`, `isInvalidTokenError` | [InvalidTokenError.ts](../../core-lib/InvalidTokenError.ts) | Classify credential errors |
 
-این رابط‌ها به API وب DeepSeek وابسته‌اند و API رسمی مبتنی بر کلید نیستند. جزئیات در [انتقال DeepSeek](../explanation/deepseek-transport.md).
+These interfaces depend on the DeepSeek web API, not the official key-based API. See [DeepSeek Transport](../explanation/deepseek-transport.md).
 
-## ابزارها و فرمان‌ها
+## Tools and Commands
 
-| ماژول | نمادهای مهم | قرارداد |
+| Module | Important Symbols | Contract |
 | --- | --- | --- |
-| [tools/types.ts](../../source/tools/types.ts) | `Tool`, `ToolCall`, `ToolResult`, `ToolMode`, `ToolConfirmationDetails`, `ConfirmationHandler` | توصیف، ورودی، خروجی و تأیید |
-| [registry.ts](../../source/tools/registry.ts) | `tools`, `getToolDescriptions` | registry و متن ابزار برای prompt |
-| [execute.ts](../../source/tools/execute.ts) | `executeTool`, `executeToolCalls`, `toolIsMutating`, `toolRequiresConfirmation` | dispatch و سیاست batch؛ سیاست در تک‌اجرا تضمین نمی‌شود |
-| [parse.ts](../../source/tools/parse.ts) | `parseToolCalls` | تبدیل markup به call |
-| [arguments.ts](../../source/tools/arguments.ts) | `stringArgument`, `textArgument`, `positiveIntegerArgument` | خواندن و تبدیل آرگومان |
-| [paths.ts](../../source/tools/paths.ts) | `rootDirectory`, `safePath`, `safeTargetPath` | کنترل مسیرهای ابزار |
-| [todo.ts](../../source/tools/todo.ts) | `todoTools`, `getTodoList` | state task در حافظه |
-| [commands/index.ts](../../source/commands/index.ts) | `SlashCommand`, `SlashCommandContext`, `slashCommands`, `resolveSlashCommand`, `formatSlashCommandHelp` | dispatch فرمان رابط |
+| [tools/types.ts](../../source/tools/types.ts) | `Tool`, `ToolCall`, `ToolResult`, `ToolMode`, `ToolConfirmationDetails`, `ConfirmationHandler` | Description, input, output, and confirmation |
+| [registry.ts](../../source/tools/registry.ts) | `tools`, `getToolDescriptions` | Registry and tool text for the prompt |
+| [execute.ts](../../source/tools/execute.ts) | `executeTool`, `executeToolCalls`, `toolIsMutating`, `toolRequiresConfirmation` | Dispatch and batch policy; policy is not guaranteed by single-tool execution |
+| [parse.ts](../../source/tools/parse.ts) | `parseToolCalls` | Convert markup into calls |
+| [arguments.ts](../../source/tools/arguments.ts) | `stringArgument`, `textArgument`, `positiveIntegerArgument` | Read and convert arguments |
+| [paths.ts](../../source/tools/paths.ts) | `rootDirectory`, `safePath`, `safeTargetPath` | Control tool paths |
+| [todo.ts](../../source/tools/todo.ts) | `todoTools`, `getTodoList` | In-memory task state |
+| [commands/index.ts](../../source/commands/index.ts) | `SlashCommand`, `SlashCommandContext`, `slashCommands`, `resolveSlashCommand`, `formatSlashCommandHelp` | Dispatch interface commands |
 
-[tools/index.ts](../../source/tools/index.ts) barrel مصرف‌کنندگان است. منطق preview در [describe.ts](../../source/tools/describe.ts)، diff نمایشی در [diff.ts](../../source/tools/diff.ts) و elevation در [sudo.ts](../../source/tools/sudo.ts) قرار دارد. افزودن export بدون ثبت در registry برای در دسترس قرارگرفتن ابزار مدل کافی نیست.
+[tools/index.ts](../../source/tools/index.ts) is the consumer-facing barrel. Preview logic is in [describe.ts](../../source/tools/describe.ts), display diffs in [diff.ts](../../source/tools/diff.ts), and elevation in [sudo.ts](../../source/tools/sudo.ts). Adding an export without registering it in the registry is insufficient to make a tool available to the model.
 
-## نشست، ذخیره‌سازی و رابط
+## Sessions, Storage, and Interface
 
-| ماژول | نماد/خانواده | مسئولیت |
+| Module | Symbol/Family | Responsibility |
 | --- | --- | --- |
-| [TokenConfig.ts](../../source/core/TokenConfig.ts) | tokenConfigDirectory، tokenConfigPath، save/clear/get preferenceها | فایل تنظیمات home |
-| [SessionTranscript.ts](../../source/core/SessionTranscript.ts) | `sessionTranscriptDirectory`, `loadSessionTranscript`, `saveSessionTranscript`, `deleteSessionTranscript` | رونوشت محلی با validation شناسه |
-| [useChatSession.ts](../../source/components/chat/useChatSession.ts) | `useChatSession` | initialize، reset، switch و cleanup |
-| [createLiveStream.ts](../../source/components/chat/createLiveStream.ts) | `createLiveStream` | تجمیع updateهای زندهٔ UI |
-| [useComposerKeys.ts](../../source/components/chat/useComposerKeys.ts) | `useComposerKeys` | کنترل ورودی و mode |
-| [chat/types.ts](../../source/components/chat/types.ts) | نوع‌های پیام و وضعیت رابط | قرارداد نمایش، نه payload OpenAI |
+| [TokenConfig.ts](../../source/core/TokenConfig.ts) | tokenConfigDirectory, tokenConfigPath, save/clear/get preferences | Home configuration file |
+| [SessionTranscript.ts](../../source/core/SessionTranscript.ts) | `sessionTranscriptDirectory`, `loadSessionTranscript`, `saveSessionTranscript`, `deleteSessionTranscript` | Local transcript with ID validation |
+| [useChatSession.ts](../../source/components/chat/useChatSession.ts) | `useChatSession` | Initialize, reset, switch, and clean up |
+| [createLiveStream.ts](../../source/components/chat/createLiveStream.ts) | `createLiveStream` | Aggregate live UI updates |
+| [useComposerKeys.ts](../../source/components/chat/useComposerKeys.ts) | `useComposerKeys` | Input and mode control |
+| [chat/types.ts](../../source/components/chat/types.ts) | Message and interface-state types | Display contract, not an OpenAI payload |
 
-ابزارهای bidi، cursor، logging و discovery نیز internal utility هستند؛ جزئیات مالکیت فایل‌ها در [نقشهٔ پوشش](source-map.md) است.
+Bidi, cursor, logging, and discovery tools are also internal utilities; file ownership details are in the [Coverage Map](source-map.md).
 
-## سرور
+## Server
 
-| ماژول | exportها/رابط‌های اصلی |
+| Module | Main Exports/Interfaces |
 | --- | --- |
 | [server/index.ts](../../source/server/index.ts) | `startServer`, `ServerOptions` |
 | [session.ts](../../source/server/session.ts) | `enqueueCompletion`, `runCompletion`, `getSessionTools`, `rememberSessionTools` |
 | [request.ts](../../source/server/request.ts) | `generateCompletionId`, `resolveModel`, `resolveThinkingEnabled`, `buildCompletionPrompt`, `validateTools`, `withToolInstructions`, `parseClientToolCalls`, `toUsage` |
 | [errors.ts](../../source/server/errors.ts) | `ApiError`, `errorBody`, `sendError`, `toApiError` |
-| [types.ts](../../source/server/types.ts) | `ChatCompletionRequest`, `ChatMessage`, `FunctionTool`, `ToolChoice`, `ReasoningEffort`, `CompletionUsage` و نوع‌های مرتبط |
+| [types.ts](../../source/server/types.ts) | `ChatCompletionRequest`, `ChatMessage`, `FunctionTool`, `ToolChoice`, `ReasoningEffort`, `CompletionUsage`, and related types |
 
-برای استفادهٔ بیرونی، به‌جای import این توابع از [قرارداد HTTP](http-api.md) استفاده کنید. برای توسعهٔ داخل مخزن، [افزودن ابزار و فرمان](../development/extending-tools-and-commands.md) و [مرجع پرامپت](prompts.md) نقاط همراه را مشخص می‌کنند.
+For external use, use the [HTTP Contract](http-api.md) instead of importing these functions. For in-repository development, [Extending Tools and Commands](../development/extending-tools-and-commands.md) and the [Prompt Reference](prompts.md) identify related integration points.

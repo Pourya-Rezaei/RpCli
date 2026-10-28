@@ -1,41 +1,41 @@
-# مرجع خط فرمان
+# Command-Line Reference
 
-این سند قرارداد ورودی برنامه را از روی کد توضیح می‌دهد؛ راهنمای قدم‌به‌قدم نیست.
+This document describes the application's input contract from the code; it is not a step-by-step guide.
 
-## منبع و دامنه
+## Source and Scope
 
-مبنای بررسی: [source/cli.tsx](../../source/cli.tsx)، [source/app.tsx](../../source/app.tsx) و [package.json](../../package.json)، نسخهٔ `0.10.1`، تاریخ `2026-10-28`. رفتارهای این صفحه از کد استخراج شده‌اند؛ اتصال واقعی به DeepSeek آزمایش نشده است.
+Review basis: [source/cli.tsx](../../source/cli.tsx), [source/app.tsx](../../source/app.tsx), and [package.json](../../package.json), version `0.10.1`, reviewed `2026-10-28`. The behaviors on this page were derived from code; a live DeepSeek connection has not been tested.
 
-## شکل اجرا
+## Invocation Forms
 
-| ورودی | نتیجه |
+| Input | Result |
 | --- | --- |
-| `rc` | گفتگوی تعاملی |
-| `rc "prompt"` | ارسال یک درخواست و خروج |
-| `rc resume <session-id>` | ورود به گفتگوی تعاملی با شناسهٔ نشست قبلی |
-| `rc -c` | تولید پیام کامیت از تغییرات staged و درخواست تأیید |
-| `rc -c -a` | تولید پیام بر اساس `git diff HEAD` |
-| `rc serve` | راه‌اندازی سرور HTTP بدون بارگذاری رابط Ink |
+| `rc` | Interactive chat |
+| `rc "prompt"` | Send a single request and exit |
+| `rc resume <session-id>` | Enter interactive chat with a previous session ID |
+| `rc -c` | Generate a commit message from staged changes and request confirmation |
+| `rc -c -a` | Generate a message based on `git diff HEAD` |
+| `rc serve` | Start the HTTP server without loading the Ink interface |
 
-آرگومان نخست `serve` پیش از انتخاب دیگر حالت‌ها بررسی می‌شود. در مسیر غیرسرور، گزینهٔ `-c` بر prompt اولویت دارد. آرگومان‌های متنی با فاصله به هم متصل و trim می‌شوند. `resume` بدون شناسه با پیام خطا و کد خروج `1` پایان می‌یابد.
+The first argument `serve` is checked before other modes are selected. On the non-server path, `-c` takes precedence over the prompt. Text arguments are joined with spaces and trimmed. `resume` without an ID exits with an error message and exit code `1`.
 
-## گزینه‌ها
+## Options
 
-| گزینه | کوتاه | نوع | کاربرد |
+| Option | Short | Type | Purpose |
 | --- | --- | --- | --- |
-| `--commit-message` | `-c` | boolean | انتخاب نمای تولید پیام کامیت |
-| `--commit-all` | `-a` | boolean | تغییر ورودی diff در حالت کامیت؛ stage نمی‌کند |
-| `--thinking` | `-t` | boolean | فعال‌کردن thinking برای درخواست تکی |
-| `--quiet` | `-q` | boolean | پنهان‌کردن نمایش thinking در درخواست تکی |
-| `--search` | `-s` | boolean | فعال‌کردن جستجوی وب برای درخواست تکی |
-| `--port` | `-p` | string | پورت سرور؛ تبدیل با `parseInt` |
-| `--host` | ندارد | string | آدرس bind سرور |
-| `--help` | ندارد | داخلی Meow | نمایش راهنما |
-| `--version` | ندارد | داخلی Meow | نمایش نسخه |
+| `--commit-message` | `-c` | boolean | Select the commit-message generation view |
+| `--commit-all` | `-a` | boolean | Change the diff input in commit mode; does not stage files |
+| `--thinking` | `-t` | boolean | Enable thinking for a single request |
+| `--quiet` | `-q` | boolean | Hide thinking output for a single request |
+| `--search` | `-s` | boolean | Enable web search for a single request |
+| `--port` | `-p` | string | Server port; converted with `parseInt` |
+| `--host` | None | string | Server bind address |
+| `--help` | None | Meow built-in | Display help |
+| `--version` | None | Meow built-in | Display version |
 
-پرچم‌های boolean هنگام تحویل به App در نبود مقدار `false` می‌شوند. حالت تعاملی تنظیمات داخلی خودش را دارد؛ نباید فرض کرد `-t` و `-s` پیش‌فرض آن را تغییر می‌دهند. پیش‌فرض سرور `127.0.0.1:3000` است؛ جزئیات اولویت محیط و اعتبارسنجی در پیاده‌سازی سرور قرار دارد.
+Boolean flags become `false` when absent when passed to App. Interactive mode has its own internal settings; do not assume that `-t` and `-s` change its defaults. The server defaults to `127.0.0.1:3000`; environment precedence and validation details are in the server implementation.
 
-## مثال‌های بدون تغییر فایل
+## Examples That Request No File Changes
 
 ```sh
 rc --help
@@ -45,12 +45,12 @@ rc -tq "Explain the tradeoffs briefly"
 rc serve --host 127.0.0.1 --port 8080
 ```
 
-دو مثال prompt با وجود درخواست متنی برای عدم تغییر، در محیط عامل اجرا می‌شوند؛ متن prompt جایگزین محدودیت اجرایی یا بازبینی تأیید ابزار نیست. مثال سرور تا زمان توقف پردازش باز می‌ماند.
+The two prompt examples run in the agent environment despite requesting no changes in their text; prompt text does not replace execution restrictions or tool-confirmation review. The server example remains running until the process is stopped.
 
-## نکات قابل اتکا
+## Reliable Details
 
-- `--plan` در flags تعریف نشده است. انتخاب حالت تعاملی از طریق TAB انجام می‌شود.
-- `quiet` معادل خروجی JSON یا تضمین stdout خالص نیست؛ برای pipe ماشینی قرارداد مستقلی تعریف نشده است.
-- `-a` فایل‌های untracked را وارد `git diff HEAD` نمی‌کند و آن‌ها را commit نمی‌کند.
-- اجرای فایل buildشده از ریشه با `node dist/source/cli.js` انجام می‌شود؛ `dist` منبع قابل ویرایش نیست.
-- cwd اجرای برنامه، مبنای workspace و خواندن `AGENTS.md` است؛ محل نصب پکیج مبنای پروژهٔ کاربر نیست.
+- `--plan` is not defined in the flags. Interactive mode selection uses TAB.
+- `quiet` does not mean JSON output or guarantee clean stdout; no separate machine-piping contract is defined.
+- `-a` does not include untracked files in `git diff HEAD` and does not commit them.
+- Run the built file from the root with `node dist/source/cli.js`; `dist` is not an editable source directory.
+- The application's working directory is the basis for the workspace and for reading `AGENTS.md`; the package installation location is not the user's project root.

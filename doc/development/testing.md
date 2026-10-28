@@ -1,54 +1,54 @@
-# اجرای آزمون و شناخت پوشش فعلی
+ # Running Tests and Understanding Existing Coverage
 
-این راهنما میان «آزمون تعریف‌شده»، «آزمون اجراشده» و «رفتار اثبات‌شده» تفاوت می‌گذارد.
-برای اجرای فرمان‌ها ابتدا محیط [توسعه](setup-and-scripts.md) را آماده کنید.
+ This guide distinguishes between defined tests, executed tests, and demonstrated behavior.
+ Before running commands, prepare the [development environment](setup-and-scripts.md).
 
-## فرمان‌های آینده
+ ## Commands to Run
 
-```sh
-pnpm build
-pnpm test
-```
+ ```sh
+ pnpm build
+ pnpm test
+ ```
 
-build شامل TypeScript و کپی پرامپت است.
-test به ترتیب `prettier --check .`، `xo` و `ava` اجرا می‌کند.
-اگر مرحله اول شکست بخورد، موفقیت AVA از این فرمان قابل استنتاج نیست.
-برای بررسی محدود، پس از نصب وابستگی‌ها می‌توانید اجرا کنید:
+ The build includes TypeScript compilation and prompt copying.
+ The test command runs `prettier --check .`, `xo`, and `ava` in that order.
+ If the first stage fails, this command provides no evidence that AVA succeeded.
+ For a focused check, after installing dependencies you can run:
 
-```sh
-pnpm exec tsc --noEmit
-pnpm exec ava test/tools.test.ts
-```
+ ```sh
+ pnpm exec tsc --noEmit
+ pnpm exec ava test/tools.test.ts
+ ```
 
-پیکربندی AVA پسوندهای `ts` و `tsx` و loader مربوط به `ts-node/esm` را دارد.
-این نمونه‌ها دستور اجرا هستند، نه گزارش نتیجه این بازبینی.
+ The AVA configuration includes the `ts` and `tsx` extensions and the `ts-node/esm` loader.
+ These examples are execution instructions, not results from this review.
 
-## پوشش تعریف‌شده: ۱۲ مورد
+ ## Defined Coverage: 12 Cases
 
-پنج مورد در [source/core/bidiText.test.ts](../../source/core/bidiText.test.ts) تعریف شده‌اند.
-آن‌ها متن چپ‌به‌راست، بازچینی فارسی، استقلال خط‌ها، تشخیص فارسی و تشخیص ترمینال bidi را بررسی می‌کنند.
-سه مورد در [source/core/toolCallMarkup.test.ts](../../source/core/toolCallMarkup.test.ts) تعریف شده‌اند.
-آن‌ها DSML کامل، مرزبندی chunkها و علامت کمتر از در متن عادی را پوشش می‌دهند.
-چهار مورد در [test/tools.test.ts](../../test/tools.test.ts) تعریف شده‌اند.
-آن‌ها خواندن بازه‌ای فایل، fallback از thinking، دسته search/edit و پنهان‌کردن markup ناقص را بررسی می‌کنند.
-فقط مورد خواندن بازه‌ای، اجرای واقعی `read_file` را در همان مجموعه انجام می‌دهد.
-تعداد caseها درصد پوشش یا تأیید ایمنی نیست.
+ Five cases are defined in [source/core/bidiText.test.ts](../../source/core/bidiText.test.ts).
+ They check left-to-right text, Persian reordering, line independence, Persian detection, and bidi terminal detection.
+ Three cases are defined in [source/core/toolCallMarkup.test.ts](../../source/core/toolCallMarkup.test.ts).
+ They cover complete DSML, chunk boundaries, and the less-than sign in ordinary text.
+ Four cases are defined in [test/tools.test.ts](../../test/tools.test.ts).
+ They check reading a file range, fallback from thinking, search/edit batches, and hiding incomplete markup.
+ Only the file-range case actually executes `read_file` in that suite.
+ The case count is neither a coverage percentage nor a safety certification.
 
-## شکاف‌هایی که باید در تغییرها لحاظ شوند
+ ## Gaps to Consider When Making Changes
 
-برای سرور، انتقال DeepSeek و چرخه نشست پوشش فعلیِ مستقیمی وجود ندارد.
-لغو، تأیید دسته‌ای، حالت‌ها، مسیرهای خروجی، نوشتن فایل و todoها نیز پوشش مستقیم ندارند.
-برای تغییر مرتبط، آزمون محدود همان قرارداد را اضافه کنید؛ به این ۱۲ مورد تکیه عمومی نکنید.
-آزمون‌های نیازمند فایل را در فضای موقت و بدون داده کاربر طراحی کنید.
-تماس با DeepSeek را به آزمون واحد تحمیل نکنید؛ نیاز توکن و شبکه را صریح جدا کنید.
+ There is currently no direct coverage for the server, DeepSeek transport, or session lifecycle.
+ Cancellation, batch confirmation, modes, output paths, file writing, and todos also lack direct coverage.
+ For a related change, add a focused test of that contract; do not rely on these 12 cases as general assurance.
+ Design tests that need files to use temporary storage without user data.
+ Do not require DeepSeek calls in unit tests; explicitly separate token and network requirements.
 
-Markdown در ignore قالب‌بندی قرار دارد؛ `pnpm test` صحت پیوندهای مستندات را تضمین نمی‌کند.
-در این محیط وابستگی‌ها و pnpm موجود نبودند؛ build، lint و AVA اجرا نشدند.
-هیچ ادعای «آزمون‌ها پاس شدند» یا درصد پوشش از این بازبینی به دست نمی‌آید.
+ Markdown is ignored by the formatter; `pnpm test` does not guarantee valid documentation links.
+ Dependencies and pnpm were unavailable in the review environment; build, lint, and AVA were not run.
+ This review supports no claim that tests passed or that any coverage percentage was achieved.
 
-## شواهد و اعتبار
+ ## Evidence and Validity
 
-مالک اجرای محلی: [source/tools/execute.ts](../../source/tools/execute.ts)، `executeTool`.
-مالک تبدیل stream: [source/core/toolCallMarkup.ts](../../source/core/toolCallMarkup.ts)، `createToolCallMarkupNormalizer`.
-برای قرارداد دقیق [پروتکل ابزار](../reference/tool-protocol.md) و [نمایه](../README.md) را ببینید.
-نسخه مبنا: **0.10.1**؛ بازبینی: **2026-10-28**؛ تحلیل ایستا، بدون آزمون اجرایی DeepSeek.
+ Local execution owner: [source/tools/execute.ts](../../source/tools/execute.ts), `executeTool`.
+ Stream transformation owner: [source/core/toolCallMarkup.ts](../../source/core/toolCallMarkup.ts), `createToolCallMarkupNormalizer`.
+ For the exact contract, see the [tool protocol](../reference/tool-protocol.md) and [index](../README.md).
+ Baseline version: **0.10.1**; review: **2026-10-28**; static analysis, without live DeepSeek testing.

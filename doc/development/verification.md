@@ -1,62 +1,64 @@
-# گزارش اعتبارسنجی مستندات
+# Documentation Validation Report
 
-تاریخ بررسی: `2026-10-28`؛ نسخهٔ مبنا: `0.10.1`. این گزارش به تهیهٔ مجموعهٔ `doc/` مربوط است، نه تأیید انتشار یا آزمون کامل محصول.
+Review date: `2026-10-28`; baseline version: `0.10.1`. This report records the original snapshot from the preparation of the `doc/` collection, not release approval or complete product testing. Its historical metrics do not assert that the current documentation count is unchanged.
 
-## دامنه و روش
+## Scope and Method
 
-کد ورودی، عامل، ابزارها، transport وب، سرور، رابط ترمینال، تنظیمات، promptها و تست‌های موجود در تحلیل لحاظ شدند. [نقشهٔ پوشش](../reference/source-map.md) فایل‌های تحت Git را به محل توضیح وصل می‌کند. شواهد هر رفتار در صفحهٔ تخصصی لینک شده‌اند.
+The analysis covered entry-point code, the agent, tools, web transport, the server, the terminal interface, settings, prompts, and existing tests. The [coverage map](../reference/source-map.md) connects Git-tracked files to their documentation. Evidence for each behavior is linked on its dedicated page.
 
-فقط فایل Markdown به `doc/` اضافه شده است؛ build output، کد برنامه، lockfile، اسناد ریشه و config شخصی ویرایش نشده‌اند. اجرای فرمان‌های نمونهٔ دارای اثر جانبی یا نیازمند حساب DeepSeek بخشی از اعتبارسنجی نبوده است.
+In the original snapshot, only Markdown files were added to `doc/`; build output, application code, the lockfile, root documents, and personal configuration were not edited. Running example commands with side effects or requiring a DeepSeek account was not part of validation.
 
-## کنترل‌های اسناد
+## Documentation Checks
 
-| کنترل | معیار |
+| Check | Criterion |
 | --- | --- |
-| مقصد پیوندها | همهٔ لینک‌های نسبی فایل به مقصد موجود resolve شوند |
-| حصار کد | بلوک‌های fenced بسته شوند |
-| ناوبری | همهٔ صفحات Markdown مجموعه از نمایه قابل دسترس باشند |
-| پوشش مخزن | هر فایل در موجودی اولیهٔ Git در source-map مرجع داشته باشد |
-| محدودیت دامنه | diff کد/فایل‌های tracked قبلی خالی و تغییرات جدید محدود به doc باشد |
-| خوانایی | هدف، ساختار موضوعی، مثال جدا و ارجاع به مرجع در بازبینی متنی کنترل شود |
-| اعتبار ادعا | رفتار استخراج‌شده، ریسک ایستا و رفتار runtime آزمایش‌نشده مخلوط نشوند |
+| Link targets | All relative file links resolve to existing targets |
+| Code fences | Fenced blocks are closed |
+| Navigation | All Markdown pages in the collection are reachable from the index |
+| Repository coverage | Every file in the initial Git inventory has a source-map reference |
+| Scope restriction | The diff for code and previously tracked files is empty, and new changes are limited to doc |
+| Readability | Text review checks purpose, topic structure, separate examples, and reference links |
+| Claim validity | Derived behavior, static risks, and untested runtime behavior are not conflated |
 
-کنترل خودکار مقصد فایل، رندر بصری Markdown و درستی معنایی همهٔ جملات را اثبات نمی‌کند. پیوندهای این مجموعه عمداً به فایل‌اند و به heading یا line anchor شکننده تکیه ندارند. نمودارهای Mermaid متن‌محورند؛ رندر در تمام viewerها در این کار آزمایش نشده است.
+Automated file-target checks do not establish correct visual Markdown rendering or the semantic correctness of every sentence. Links in this collection intentionally target files rather than relying on fragile heading or line anchors. Mermaid diagrams are text-based; rendering in every viewer was not tested in this work.
 
-## محیط و محدودیت build
+## Environment and Build Limitations
 
-Node موجود در محیط بررسی `v24.17.0` است. فرمان `pnpm exec tsc --noEmit` تلاش شد، اما shell با `pnpm: command not found` متوقف شد؛ بنابراین هیچ نتیجهٔ TypeScript از آن حاصل نشد.
+Node in the original review environment was `v24.17.0`. The command `pnpm exec tsc --noEmit` was attempted, but the shell stopped with `pnpm: command not found`; it therefore produced no TypeScript result.
 
-بررسی بعدی نشان داد `node_modules`، compiler محلی TypeScript و AVA محلی نیز وجود ندارند. نصب dependency، دانلود package manager یا تماس شبکه‌ای برای رفع این پیش‌نیاز انجام نشد. نتیجه:
+Further inspection showed that `node_modules`, a local TypeScript compiler, and local AVA were also absent. No dependencies were installed, no package manager was downloaded, and no network requests were made to satisfy these prerequisites. As a result:
 
-- build و typecheck اجراشده و موفق گزارش نمی‌شوند.
-- lint، Prettier و AVA اجرا نشده‌اند.
-- شمار ۱۲ case از تعریف تست‌ها استخراج شده؛ به معنی ۱۲ تست پاس‌شده نیست.
-- از نبود خطای editor نمی‌توان موفقیت build را نتیجه گرفت.
+- Build and typecheck are not reported as executed and successful.
+- Lint, Prettier, and AVA were not run.
+- The count of 12 cases was extracted from test definitions; it does not mean 12 tests passed.
+- The absence of editor errors does not establish a successful build.
 
-[package.json](../../package.json) مسیر اجرای `pnpm build` و `pnpm test` را تعریف می‌کند. برای انجام این gateها در محیط آماده، [آماده‌سازی توسعه](setup-and-scripts.md) و [تست‌ها](testing.md) را دنبال کنید. [فایل ignore](../../.prettierignore) Markdown را کنار می‌گذارد؛ موفقیت pnpm test نیز جای کنترل پیوندها را نمی‌گیرد.
+[package.json](../../package.json) defines how `pnpm build` and `pnpm test` run. To perform these gates in a prepared environment, follow [development setup](setup-and-scripts.md) and [testing](testing.md). The [ignore file](../../.prettierignore) excludes Markdown; even a successful pnpm test does not replace link checks.
 
-## رفتارهای اجرا نشده
+## Behaviors Not Exercised
 
-توکن شخصی خوانده یا ثبت نشد؛ حساب remote، تولید پاسخ، سلامت واقعی DeepSeek، deletion نشست، function call، تغییر مدل، resume واقعی، اجرای shell، elevation و سناریوهای symlink آزمایش نشدند. سناریوهای امنیتی [فهرست محدودیت‌ها](../reference/known-limitations.md) استنتاج از کدند، نه exploit اجراشده.
+No personal token was read or recorded. Remote accounts, response generation, actual DeepSeek service health, session deletion, function calls, model switching, actual resuming, shell execution, elevation, and symlink scenarios were not tested. The security scenarios in [known limitations](../reference/known-limitations.md) are inferences from code, not executed exploits.
 
-## ثبت نتیجهٔ نهایی
+## Original Snapshot Results
 
-| نتیجهٔ کنترل | مقدار در این بازبینی |
+These values describe the original documentation snapshot only, not the current collection or this translation's validation results.
+
+| Check result | Value in the original snapshot |
 | --- | --- |
-| صفحهٔ Markdown | ۲۸ |
-| پیوند نسبی فایل کنترل‌شده | ۵۸۶؛ بدون مقصد شکسته |
-| پوشش موجودی اولیهٔ Git | ۸۵ از ۸۵ فایل |
-| صفحهٔ غیرقابل دسترس از نمایه | صفر |
-| حصار کد بازمانده | صفر |
-| تغییر فایل tracked پیشین | صفر |
-| فایل جدید بیرون doc | صفر |
-| خطای گزارش‌شدهٔ editor در doc | صفر؛ جایگزین compiler نیست |
+| Markdown pages | 28 |
+| Relative file links checked | 586; no broken targets |
+| Initial Git inventory coverage | 85 of 85 files |
+| Pages unreachable from the index | 0 |
+| Unclosed code fences | 0 |
+| Previously tracked files changed | 0 |
+| New files outside doc | 0 |
+| Editor errors reported in doc | 0; not a substitute for a compiler |
 
-این کنترل‌ها با Node و filesystem محلی انجام شدند، بدون نصب کتابخانه. بازبینی متنی نیز مرجع‌های حساس CLI، function parsing، تنظیمات، mode و محدودیت‌های انتقال را با منابع تطبیق داد؛ این بازبینی تضمین رسمی صحت تمام جمله‌ها نیست.
+These checks used Node and the local filesystem without installing libraries. Text review also cross-checked sensitive CLI references, function parsing, settings, modes, and transport limitations against the sources; this review is not a formal guarantee that every sentence is correct.
 
-## بازاجرای کنترل ساختاری
+## Rerunning the Structural Check
 
-از ریشهٔ repository، این بررسی فقط فایل‌ها را می‌خواند و در صورت خطای پیوند، حصار، ناوبری یا پوشش exception می‌دهد. به pnpm یا حساب DeepSeek نیاز ندارد:
+From the repository root, this check only reads files and throws an exception on link, fence, navigation, or coverage errors. It requires neither pnpm nor a DeepSeek account:
 
 ```sh
 node --input-type=module <<'NODE'
@@ -104,6 +106,6 @@ console.log({pages: pages.size, links: [...edges.values()].flat().length, status
 NODE
 ```
 
-این checker برای لینک‌های فایل معمولی و حصارهای همین مجموعه طراحی شده، نه parser کامل Markdown. افزودن anchor، HTML، image یا نوع حصار تازه نیاز به گسترش بررسی متناسب دارد. کنترل diff دامنهٔ تغییرات و بازبینی معنایی متن همچنان جدا لازم است.
+This checker is designed for ordinary file links and the fences in this collection, not as a complete Markdown parser. Adding anchors, HTML, images, or a new fence type requires extending the check accordingly. Checking the diff for change scope and reviewing the text's meaning remain separate requirements.
 
-تاریخ و نسخه متعلق به snapshot تحلیل است؛ مستندات تضمین همگامی خودکار با نسخه‌های آینده نیستند. [راهنمای نگهداری](documentation-maintenance.md) معیار بازبینی بعدی را مشخص می‌کند.
+The date and version belong to the analysis snapshot; the documentation does not guarantee automatic synchronization with future versions. The [maintenance guide](documentation-maintenance.md) defines the criteria for the next review.

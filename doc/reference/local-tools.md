@@ -1,62 +1,62 @@
-# مرجع ابزارهای محلی
+# Local Tools Reference
 
-نسخهٔ مبنا `0.10.1`؛ تاریخ بررسی `2026-10-28`. قرارداد زیر حاصل خواندن کد است، نه اجرای عملیات روی فایل‌های کاربر.
+Baseline version `0.10.1`; reviewed `2026-10-28`. The following contract comes from reading code, not performing operations on user files.
 
-## مالکیت و مدل اجرا
+## Ownership and Execution Model
 
-تعریف ابزارها در [registry.ts](../../source/tools/registry.ts)، قراردادها در [types.ts](../../source/tools/types.ts)، تبدیل ورودی در [arguments.ts](../../source/tools/arguments.ts) و هماهنگی اجرا در [execute.ts](../../source/tools/execute.ts) است. `tools` شامل ۱۲ ابزار است. `getToolDescriptions` توصیف متنی را برای prompt تولید می‌کند؛ JSON Schema مرکزی برای اعتبارسنجی همهٔ ابزارها وجود ندارد.
+Tool definitions are in [registry.ts](../../source/tools/registry.ts), contracts in [types.ts](../../source/tools/types.ts), input conversion in [arguments.ts](../../source/tools/arguments.ts), and execution coordination in [execute.ts](../../source/tools/execute.ts). `tools` contains 12 tools. `getToolDescriptions` generates textual descriptions for the prompt; there is no central JSON Schema for validating every tool.
 
-## فایل، جستجو و shell
+## Files, Search, and Shell
 
-| ابزار | پارامترها | رفتار و خروجی | تأیید در normal |
+| Tool | Parameters | Behavior and Output | Confirmation in normal |
 | --- | --- | --- | --- |
-| `list_directory` | `path?` پیش‌فرض `.` | ورودی‌های مستقیم، با برچسب file یا directory؛ غیر بازگشتی | خیر |
-| `read_file` | `path`, `offset?`, `limit?` | متن UTF-8؛ offset یک‌مبنا و پیش‌فرض ۱؛ limit تعداد خطوط | خیر |
-| `write_file` | `path`, `content` | ایجاد یا بازنویسی کامل؛ خروجی تعداد بایت | بله |
-| `edit_file` | `path`, `old_text`, `new_text` | جایگزینی فقط یک تطابق دقیق و یکتا | بله |
-| `delete_file` | `path` | حذف فایل معمولی؛ نه پوشه | بله |
-| `search_files` | `query`, `path?` پیش‌فرض `.` | حداکثر ۵۰ خط با قالب path:line:text | خیر |
-| `run_command` | `command` | اجرای shell؛ نتیجهٔ stdout و stderr | بله |
+| `list_directory` | `path?`, default `.` | Direct entries labeled file or directory; nonrecursive | No |
+| `read_file` | `path`, `offset?`, `limit?` | UTF-8 text; offset is one-based and defaults to 1; limit is the line count | No |
+| `write_file` | `path`, `content` | Create or overwrite completely; output is the byte count | Yes |
+| `edit_file` | `path`, `old_text`, `new_text` | Replace exactly one unique, exact match | Yes |
+| `delete_file` | `path` | Delete a regular file, not a directory | Yes |
+| `search_files` | `query`, `path?`, default `.` | At most 50 lines in path:line:text format | No |
+| `run_command` | `command` | Execute shell; stdout and stderr result | Yes |
 
-`read_file` فایل غیرمعمولی و اندازهٔ بیش از `100 * 1024` بایت را رد می‌کند؛ بازه پس از خواندن کل فایل محاسبه می‌شود. offset و limit باید عدد صحیح مثبت باشند. درخواست بازه‌ای خارج از انتهای فایل ممکن است متن خالی برگرداند.
+`read_file` rejects nonregular files and sizes above `100 * 1024` bytes; the range is calculated after reading the entire file. offset and limit must be positive integers. A range beyond the end of a file may return empty text.
 
-`edit_file` تطابق نداشتن یا چند تطابق را خطا می‌داند. `old_text` خالی معتبر نیست؛ `new_text` می‌تواند خالی باشد. `write_file` پوشهٔ والد گمشده را ایجاد نمی‌کند. محدودیت ۱۰۰ KiB خواندن به معنی وجود همان محدودیت برای نوشتن یا edit نیست.
+`edit_file` treats zero or multiple matches as errors. Empty `old_text` is invalid; `new_text` may be empty. `write_file` does not create missing parent directories. The 100 KiB read limit does not imply the same limit for writing or editing.
 
-`search_files` جستجوی literal و حساس به حروف است، نه regex. فایل‌های بزرگ‌تر از ۱۰۰ KiB کنار گذاشته می‌شوند. کشف فایل از [ListWorkspaceFiles.ts](../../source/core/ListWorkspaceFiles.ts) شروع می‌شود: ابتدا Git، سپس fallback مبتنی بر [Gitignore.ts](../../source/core/Gitignore.ts). این فیلتر، کنترل محرمانگی نیست؛ خواندن صریح فایل ignored همچنان ممکن است.
+`search_files` performs case-sensitive literal search, not regex search. Files larger than 100 KiB are skipped. File discovery begins in [ListWorkspaceFiles.ts](../../source/core/ListWorkspaceFiles.ts): Git first, then a fallback based on [Gitignore.ts](../../source/core/Gitignore.ts). This filter is not a confidentiality control; explicitly reading an ignored file remains possible.
 
-## فهرست کارها
+## Todo List
 
-مالک: [todo.ts](../../source/tools/todo.ts)، نمادهای `todoTools` و `getTodoList`.
+Owner: [todo.ts](../../source/tools/todo.ts), symbols `todoTools` and `getTodoList`.
 
-| ابزار | پارامترها | اثر |
+| Tool | Parameters | Effect |
 | --- | --- | --- |
-| `todo_add` | `description`, `parent_id?` | ایجاد task با وضعیت pending؛ افزودن فرزند به والد done رد می‌شود |
-| `todo_list` | ندارد | نمایش فهرست و درصد تکمیل |
-| `todo_update` | `id`, `status` | status یکی از pending، in-progress، done |
-| `todo_split` | `id`, `subtasks` | جایگزینی فرزندان مستقیم و بازگشت والد به pending |
-| `todo_clear` | ندارد | پاک‌کردن Map و بازنشانی شناسهٔ بعدی به ۱ |
+| `todo_add` | `description`, `parent_id?` | Create a pending task; adding a child to a done parent is rejected |
+| `todo_list` | None | Display the list and completion percentage |
+| `todo_update` | `id`, `status` | status is pending, in-progress, or done |
+| `todo_split` | `id`, `subtasks` | Replace direct children and return the parent to pending |
+| `todo_clear` | None | Clear the Map and reset the next ID to 1 |
 
-همهٔ خروجی‌های todo متن قالب‌بندی‌شده هستند؛ حتی اگر description از «بازگرداندن id» صحبت کند، قرارداد خروجی JSON ساخت‌یافته نیست. داده فقط در حافظهٔ پردازش نگهداری می‌شود و با transcript نشست بازیابی نمی‌شود.
+All todo outputs are formatted text; even if a description mentions "returning an ID," the output contract is not structured JSON. Data is held only in process memory and is not restored with the session transcript.
 
-`subtasks` آرایه یا رشته می‌پذیرد؛ رشته بر اساس خط و در حالت تک‌خطی دارای ویرگول بر اساس ویرگول تقسیم می‌شود. تک‌مورد بیشتر از ۲۰۰ کاراکتر رد می‌شود. تکمیل والد فقط به فرزندان مستقیم نگاه می‌کند و propagation بازگشتی عمومی نیست. نمایش نیز ریشه و یک سطح فرزند را نشان می‌دهد.
+`subtasks` accepts an array or string; strings are split by line, or by commas for a single line containing commas. A single item over 200 characters is rejected. Parent completion only examines direct children and is not general recursive propagation. Display also shows roots and one child level.
 
-فقط `todo_clear` دارای `requiresConfirmation: true` است؛ بقیه با وجود تغییر حافظه در طبقهٔ ابزارهای nonmutating این executor قرار می‌گیرند. بنابراین در plan هم قابل اجرا هستند. مشکل فراخوانی ابزار بدون پارامتر از markup در [پروتکل ابزار](tool-protocol.md) توضیح داده شده است.
+Only `todo_clear` has `requiresConfirmation: true`; the others are classified as nonmutating by this executor despite changing memory. They can therefore also run in plan mode. The issue with invoking parameterless tools through markup is explained in the [Tool Protocol](tool-protocol.md).
 
-## سیاست batch و تأیید
+## Batch Policy and Confirmation
 
-- `executeToolCalls`: batch سراسر nonmutating را موازی اجرا می‌کند؛ ترتیب نتیجه‌ها حفظ می‌شود.
-- وجود یک ابزار mutating باعث اجرای ترتیبی تمام batch می‌شود.
-- در plan ابزارهای طبقه‌بندی‌شده به‌عنوان mutating مسدود می‌شوند.
-- در yolo تأییدهای معمول حذف می‌شوند؛ elevation همچنان تأیید می‌خواهد.
-- خطای یک ابزار معمولاً اجرای ابزار بعد را متوقف نمی‌کند؛ رد تأیید باعث skipped شدن ادامهٔ batch می‌شود.
-- `executeTool` به‌تنهایی سیاست mode و تأیید را اعمال نمی‌کند؛ این مسئولیت caller است.
+- `executeToolCalls` runs an entirely nonmutating batch in parallel; result order is preserved.
+- A single mutating tool makes the entire batch execute sequentially.
+- Tools classified as mutating are blocked in plan mode.
+- yolo skips ordinary confirmations; elevation still requires confirmation.
+- A tool error generally does not stop the next tool; rejecting confirmation skips the remainder of the batch.
+- `executeTool` alone does not enforce mode or confirmation policy; that is the caller's responsibility.
 
-نتیجهٔ عمومی `ToolResult` شامل `ok`، `tool_name` و در موفقیت `result` یا در شکست `error` است. آرایه‌ها با newline و خروجی shell با بخش stderr به متن تبدیل می‌شوند. خطا exception خام را به مدل پرتاب نمی‌کند؛ به نتیجهٔ ناموفق تبدیل می‌شود.
+The general `ToolResult` contains `ok`, `tool_name`, and either `result` on success or `error` on failure. Arrays become newline-separated text, and shell output becomes text with a stderr section. An error does not throw a raw exception to the model; it becomes an unsuccessful result.
 
-## مرز ایمنی
+## Safety Boundary
 
-[paths.ts](../../source/tools/paths.ts) cwd اولیه را ثبت می‌کند. `safePath` مسیر موجود و realpath را کنترل می‌کند؛ `safeTargetPath` برای مقصد نوشتن تنها والد را resolve می‌کند. symlink نهایی مقصد و مسیر جستجو محدودیت‌های جداگانه دارند؛ شرح دقیق در [امنیت](../explanation/security-and-privacy.md).
+[paths.ts](../../source/tools/paths.ts) captures the initial cwd. `safePath` checks existing paths and realpaths; `safeTargetPath` resolves only the parent for write destinations. Final destination symlinks and search paths have separate limitations; details are in [Security](../explanation/security-and-privacy.md).
 
-اجرای shell عادی با cwd اولیه، محیط ارث‌برده و buffer یک MiB انجام می‌شود؛ timeout و sandbox ندارد. مسیر elevation در [sudo.ts](../../source/tools/sudo.ts) با تشخیص متنی `sudo` و `@slosk/sudo-prompt` کار می‌کند، نه parser واقعی shell. تأیید کاربر، محدودیت سطح سیستم‌عامل ایجاد نمی‌کند.
+Ordinary shell execution uses the initial cwd, inherited environment, and a one-MiB buffer; it has no timeout or sandbox. The elevation path in [sudo.ts](../../source/tools/sudo.ts) uses textual `sudo` detection and `@slosk/sudo-prompt`, not a real shell parser. User confirmation does not create an operating-system-level restriction.
 
-برای تفاوت این ابزارها با functionهای HTTP، [مرجع API](http-api.md) را بخوانید.
+Read the [API Reference](http-api.md) for the distinction between these tools and HTTP functions.

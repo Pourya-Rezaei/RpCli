@@ -1,48 +1,48 @@
-# مرجع HTTP API
+# HTTP API Reference
 
-نسخهٔ مبنا `0.10.1`، بررسی ایستا در `2026-10-28`. پاسخ‌ها و مثال‌ها از کد استخراج شده‌اند، نه از اجرای سرویس DeepSeek. این رابط adapter حالت‌دار است، نه پیاده‌سازی کامل OpenAI.
+Baseline version `0.10.1`, statically reviewed on `2026-10-28`. Responses and examples were derived from code, not from running the DeepSeek service. This interface is a stateful adapter, not a complete OpenAI implementation.
 
-## منابع مسئول
+## Responsible Sources
 
-[index.ts](../../source/server/index.ts): routeها و `startServer`؛ [request.ts](../../source/server/request.ts): ساخت prompt و function parsing؛ [session.ts](../../source/server/session.ts): صف و نشست؛ [stream.ts](../../source/server/stream.ts): SSE؛ [types.ts](../../source/server/types.ts): شکل‌های TypeScript؛ [http.ts](../../source/server/http.ts): CORS و توکن؛ [errors.ts](../../source/server/errors.ts): خطا.
+[index.ts](../../source/server/index.ts): routes and `startServer`; [request.ts](../../source/server/request.ts): prompt construction and function parsing; [session.ts](../../source/server/session.ts): queue and sessions; [stream.ts](../../source/server/stream.ts): SSE; [types.ts](../../source/server/types.ts): TypeScript shapes; [http.ts](../../source/server/http.ts): CORS and tokens; [errors.ts](../../source/server/errors.ts): errors.
 
-## راه‌اندازی و endpointها
+## Startup and Endpoints
 
-پیش‌فرض bind برابر `127.0.0.1:3000` است. port گزینه بر `PORT` اولویت دارد و فقط عدد صحیح ۱ تا ۶۵۵۳۵ پذیرفته می‌شود؛ مقدار نامعتبر به ۳۰۰۰ برمی‌گردد. host گزینه بر `HOST` اولویت دارد. اندازهٔ JSON body حداکثر `10mb` تنظیم شده است.
+The default bind address is `127.0.0.1:3000`. The port option takes precedence over `PORT`; only integers from 1 to 65535 are accepted, and invalid values fall back to 3000. The host option takes precedence over `HOST`. The JSON body size limit is configured as `10mb`.
 
-| متد و مسیر | رفتار |
+| Method and Path | Behavior |
 | --- | --- |
-| `GET /health` | status برابر ok، object برابر health و timestamp؛ سلامت اتصال DeepSeek را نمی‌سنجد |
-| `GET /v1/models` | list با یک مدل `deepseek`، created برابر ۰ و owned_by برابر deepseek |
-| `GET /v1/models/deepseek` | شیء همان مدل |
-| `GET /v1/models/:model` برای نام دیگر | 404 با model_not_found |
-| `POST /v1/chat/completions` | ادامهٔ نشست فعال یا ساخت نشست لازم |
-| `POST /v1/chat/completions/:sessionId` | تلاش برای انتخاب نشست مشخص |
-| `OPTIONS *` | پاسخ 204 پس از middleware مربوط به CORS |
+| `GET /health` | Status ok, object health, and timestamp; does not test DeepSeek connectivity |
+| `GET /v1/models` | A list containing one model, `deepseek`, with created 0 and owned_by deepseek |
+| `GET /v1/models/deepseek` | The same model object |
+| `GET /v1/models/:model` for another name | 404 with model_not_found |
+| `POST /v1/chat/completions` | Continue the active session or create a session as needed |
+| `POST /v1/chat/completions/:sessionId` | Attempt to select the specified session |
+| `OPTIONS *` | Respond with 204 after CORS middleware |
 
-## ورودی completion
+## Completion Input
 
-| فیلد | رفتار واقعی |
+| Field | Actual Behavior |
 | --- | --- |
-| `messages` | آرایهٔ غیرخالی؛ فقط آخرین item برای ساخت prompt استفاده می‌شود |
-| آخرین `content` | string یا محتوای متنی استخراج‌شده از array؛ متن trimشده نباید خالی باشد |
-| آخرین `role: tool` | متن با name و tool_call_id در بلوک tool_result پیچیده می‌شود |
-| `model` | برچسب پاسخ و پیش‌فرض thinking؛ انتخاب مستقیم Expert نیست |
-| `thinking_enabled` | در صورت ارائه بر reasoning_effort و پیش‌فرض مدل اولویت دارد |
-| `reasoning_effort` | none/minimal خاموش؛ low/medium/high/xhigh/max روشن؛ درجات واقعی بودجه اعمال نمی‌شوند |
-| `search_enabled` | پیش‌فرض false؛ جستجوی بالادستی |
-| `stream` | فقط مقدار دقیق true مسیر SSE را فعال می‌کند |
-| `stream_options.include_usage` | در true، chunk پایانی usage با choices خالی |
-| `n` | غایب یا ۱؛ سایر مقادیر 400 |
-| `tools` | functionها با نام معتبر؛ غایب یعنی استفاده از cache نشست در صورت وجود |
-| `tool_choice` | auto، none، required یا انتخاب function با نام |
-| `temperature`, `max_tokens` | در type حضور دارند، ولی به transport ارسال نمی‌شوند |
+| `messages` | Nonempty array; only the last item is used to construct the prompt |
+| Last `content` | String or text extracted from an array; trimmed text must not be empty |
+| Last `role: tool` | Text is wrapped in a tool_result block with name and tool_call_id |
+| `model` | Response label and thinking default; does not directly select Expert |
+| `thinking_enabled` | When supplied, takes precedence over reasoning_effort and the model default |
+| `reasoning_effort` | none/minimal disable thinking; low/medium/high/xhigh/max enable it; actual budget levels are not applied |
+| `search_enabled` | Defaults to false; upstream search |
+| `stream` | Only the exact value true enables SSE |
+| `stream_options.include_usage` | When true, a final usage chunk with empty choices |
+| `n` | Absent or 1; other values produce 400 |
+| `tools` | Functions with valid names; absence uses the session cache if available |
+| `tool_choice` | auto, none, required, or selection of a named function |
+| `temperature`, `max_tokens` | Present in the type but not sent to the transport |
 
-اعتبارسنجی کامل JSON Schema برای body وجود ندارد؛ وجود یک field در type تضمین validation runtime نیست. content array فقط متن را استخراج می‌کند و پردازش تصویر پیاده نشده است. پیام‌های قبلی، حتی system، برای ساخت prompt replay نمی‌شوند.
+There is no complete JSON Schema validation for the body; a field's presence in a type does not guarantee runtime validation. Content arrays extract text only; image processing is not implemented. Previous messages, including system messages, are not replayed to construct the prompt.
 
-`resolveModel` نام غایب یا `deepseek-chat` را بدون thinking می‌گیرد؛ `deepseek-reasoner` و نام‌های مطابق reasoner یا R1 پیش‌فرض thinking را روشن می‌کنند. نام‌های دیگر نیز به‌عنوان برچسب پذیرفته می‌شوند؛ فهرست مدل‌ها وعدهٔ وجود همهٔ این مدل‌ها نیست.
+`resolveModel` treats an absent name or `deepseek-chat` as not thinking; `deepseek-reasoner` and names matching reasoner or R1 enable thinking by default. Other names are also accepted as labels; the model list does not promise that all such models exist.
 
-## پاسخ JSON
+## JSON Response
 
 ```json
 {
@@ -61,37 +61,37 @@
 }
 ```
 
-مثال شکل پاسخ است؛ created در واقع timestamp ثانیه‌ای و id تصادفی است. reasoning_content در صورت thinking یا وجود reasoning افزوده می‌شود. در function call، message شامل tool_calls است؛ content بدون متن می‌تواند null و finish_reason برابر tool_calls باشد. صفرهای usage ممکن است fallback نبود اطلاعات باشند، نه مصرف واقعی صفر.
+This example illustrates the response shape; created is actually a timestamp in seconds, and id is random. reasoning_content is added when thinking is enabled or reasoning exists. For a function call, message contains tool_calls; content can be null when there is no text, and finish_reason can be tool_calls. Usage zeros may be fallbacks for missing information rather than actual zero consumption.
 
-هدر `X-RP-Session-Id` در صورت دسترسی پیش از ارسال header، شناسهٔ نشست را برمی‌گرداند. برای ادامه، مسیر دارای sessionId از تکیه بر نشست global صریح‌تر است؛ با این حال جداسازی tenant ایجاد نمی‌کند.
+The `X-RP-Session-Id` header returns the session ID if it is available before headers are sent. For continuation, a path containing sessionId is more explicit than relying on the global session; it still does not provide tenant isolation.
 
 ## SSE
 
-رویدادها به‌شکل `data: <JSON>` با object برابر `chat.completion.chunk` ارسال می‌شوند؛ ابتدا delta نقش assistant و سپس content یا reasoning_content می‌آید. chunk پایانی finish_reason دارد و stream با `data: [DONE]` بسته می‌شود. در include_usage، پیش از DONE یک chunk با choices خالی می‌آید.
+Events are sent as `data: <JSON>` with object `chat.completion.chunk`; an assistant-role delta comes first, followed by content or reasoning_content. The final chunk contains finish_reason, and the stream closes with `data: [DONE]`. With include_usage, a chunk with empty choices precedes DONE.
 
-اگر ابزار کلاینت فعال باشد، stream تا پایان parsing بافر می‌شود؛ این مسیر جریانیِ توکن‌به‌توکن واقعی نیست. خطای پس از آغاز header در بدنهٔ SSE به‌صورت error و سپس DONE می‌آید و دیگر امکان تغییر HTTP status اولیه وجود ندارد.
+When client tools are enabled, the stream is buffered until parsing finishes; this path is not true token-by-token streaming. An error after headers begin is sent as an error in the SSE body followed by DONE; the initial HTTP status can no longer be changed.
 
-## functionها و state
+## Functions and State
 
-نام function باید با `[A-Za-z0-9_-]{1,64}` مطابق باشد. تعریف پارامترها به مدل داده می‌شود اما schema validator اجرا نمی‌شود. call نام ناشناخته خطای server ایجاد می‌کند. required بدون هیچ call خطا می‌دهد؛ انتخاب named function، call با نام متفاوت را رد می‌کند ولی نبود همهٔ callها را الزاماً رد نمی‌کند.
+Function names must match `[A-Za-z0-9_-]{1,64}`. Parameter definitions are provided to the model, but no schema validator runs. A call with an unknown name produces a server error. required without any call produces an error; choosing a named function rejects a call with a different name but does not necessarily reject the absence of all calls.
 
-سرور هیچ‌یک از این functionها را با registry محلی اجرا نمی‌کند. کلاینت مسئول اجرا و ارسال نتیجه است. تعریف tools در Map حافظه‌ای به ازای نشست cache می‌شود؛ با restart از دست می‌رود. برای جزئیات قالب به [tool-protocol.md](tool-protocol.md) مراجعه کنید.
+The server does not execute any of these functions through the local registry. The client is responsible for execution and sending results. Tool definitions are cached per session in an in-memory Map and are lost on restart. See [tool-protocol.md](tool-protocol.md) for format details.
 
-تمام completionها از یک صف عبور می‌کنند و از state API مشترک استفاده می‌کنند. تغییر token state فعال را reset می‌کند؛ انتخاب و ساخت prompt/cache پیش از اجرای صف انجام می‌شود. این معماری برای سرویس چندکاربره و ایزوله طراحی نشده است. قطع اتصال کلاینت ارسال خروجی را متوقف می‌کند؛ تلاش توقف upstream در finally پس از await نتیجه انجام می‌شود، نه الزاماً همان لحظهٔ disconnect.
+All completions pass through one queue and use shared API state. Changing the token resets active state; selection and prompt/cache construction happen before queue execution. This architecture is not designed for an isolated multi-user service. Client disconnection stops output delivery; the upstream stop attempt happens in finally after awaiting the result, not necessarily at disconnection time.
 
-## سازگاری و خطا
+## Compatibility and Errors
 
-| قابلیت مورد انتظار OpenAI | وضعیت در این پروژه |
+| Expected OpenAI Capability | Project Status |
 | --- | --- |
-| envelope completion و SSE | پشتیبانی محدود |
-| reasoning_content | افزونهٔ غیرهمسان با همهٔ کلاینت‌ها |
-| replay همهٔ messages و نقش system | پشتیبانی نمی‌شود |
-| انتخاب واقعی مدل با model | تقریبی؛ بیشتر برچسب و thinking |
-| function calling | تبدیل متنی و validation محدود، اجرای سمت کلاینت |
-| چند choice، تصویر، کنترل sampling | پشتیبانی نشده یا ارسال نمی‌شود |
-| نشست مستقل هر درخواست/کاربر | تضمین نشده |
-| احراز هویت جداگانهٔ API محلی | پیاده نشده |
+| Completion envelope and SSE | Limited support |
+| reasoning_content | Extension not compatible with every client |
+| Replay all messages and the system role | Unsupported |
+| Actual model selection through model | Approximate; mostly a label and thinking |
+| Function calling | Text conversion and limited validation; client-side execution |
+| Multiple choices, images, sampling controls | Unsupported or not forwarded |
+| Independent session for every request/user | Not guaranteed |
+| Separate local API authentication | Not implemented |
 
-envelope خطا شامل `error.message`, `type`, `param`, `code` است. ورودی messages یا JSON نامعتبر 400، نبود مدل/مسیر 404، token نامعتبر 401 و خطاهای عمومی معمولاً 500 می‌شوند. وقفهٔ نتیجه در پاسخ non-stream می‌تواند 504 شود؛ این timeout به معنی وجود deadline عمومی درخواست نیست. متن خطای token با عبارت API key سازگار با OpenAI تولید می‌شود، اما اعتبارنامهٔ واقعی پروژه توکن وب است.
+The error envelope contains `error.message`, `type`, `param`, and `code`. Invalid messages or JSON produce 400, a missing model/path produces 404, an invalid token produces 401, and general errors usually produce 500. A result interruption in a non-stream response can produce 504; this timeout does not imply a general request deadline. Token-error text uses OpenAI-compatible API key wording, but the project's actual credential is a web token.
 
-توکن محیط بر Bearer اولویت دارد؛ CORS wildcard و allowance شبکهٔ خصوصی به معنی حفاظت دسترسی نیست. پیش از تغییر bind از loopback، [امنیت](../explanation/security-and-privacy.md) و [راهنمای سرور](../guides/http-server.md) را بخوانید.
+Environment tokens take precedence over Bearer tokens; wildcard CORS and private-network allowance do not provide access protection. Before changing the bind address from loopback, read [Security](../explanation/security-and-privacy.md) and the [Server Guide](../guides/http-server.md).

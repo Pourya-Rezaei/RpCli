@@ -1,56 +1,56 @@
-# استفاده محلی از سرور HTTP
+# Using the HTTP Server Locally
 
-این راهنما برای اتصال یک کلاینت محلی به آداپتور گفتگو است، نه استقرار عمومی.
-پیش‌نیاز، نصب `rc` و تنظیم امن توکن وب DeepSeek در محیط یا فایل تنظیمات است.
+This guide covers connecting a local client to the chat adapter, not public deployment.
+Prerequisites are an installed `rc` and a securely configured DeepSeek web token in the environment or configuration file.
 
-## راه‌اندازی روی loopback
+## Starting on Loopback
 
 ```sh
 rc serve --host 127.0.0.1 --port 3000
 ```
 
-این حالت فرم تعاملی دریافت توکن را باز نمی‌کند.
-برای بررسی در ترمینال دیگر:
+This mode does not open the interactive token-entry form.
+To check from another terminal:
 
 ```sh
 curl http://127.0.0.1:3000/health
 curl http://127.0.0.1:3000/v1/models
 ```
 
-پاسخ سلامت را اثبات اعتبار توکن یا موفقیت ارتباط DeepSeek ندانید.
-کشف مدل تنها مدل `deepseek` را معرفی می‌کند.
+Do not treat the health response as proof of token validity or successful DeepSeek connectivity.
+Model discovery advertises only the `deepseek` model.
 
-## ارسال درخواست ساده
+## Sending a Simple Request
 
 ```sh
 curl http://127.0.0.1:3000/v1/chat/completions \
   -H 'Content-Type: application/json' \
-  -d '{"model":"deepseek","messages":[{"role":"user","content":"فقط سلام بگو"}],"stream":false}'
+  -d '{"model":"deepseek","messages":[{"role":"user","content":"Just say hello"}],"stream":false}'
 ```
 
-این نمونه از توکن تنظیم‌شده سرور استفاده می‌کند و هیچ راز واقعی در فرمان ندارد.
-اگر توکن سرور تنظیم نشده باشد، Bearer می‌تواند توکن وب را تأمین کند.
-تقدم انتخاب `DEEPSEEK_TOKEN` سپس `RC_TOKEN` سپس Bearer است.
-توکن تنظیم‌شده، احراز هویت مستقل کلاینت نیست؛ درخواست‌کننده مجبور به تطبیق آن نیست.
+This example uses the server's configured token and contains no real secret in the command.
+If no server token is configured, Bearer can supply the web token.
+Selection precedence is `DEEPSEEK_TOKEN`, then `RC_TOKEN`, then Bearer.
+The configured token is not independent client authentication; the requester is not required to match it.
 
-## قرارداد و محدودیت‌ها
+## Contract and Limitations
 
-فقط محتوای متنی آخرین پیام به عنوان ورودی گفتگو استفاده می‌شود.
-ارسال آرایه کامل تاریخچه OpenAI باعث بازپخش مستقل آن تاریخچه نمی‌شود.
-تمام completionها یک صف و نشست فعال مشترک دارند؛ این سرور چندمستاجری نیست.
-نام مدل reasoner بر پیش‌فرض thinking اثر دارد، نه انتخاب Expert در سرویس بالادست.
-پارامترهایی مانند `temperature` و `max_tokens` به بالادست فرستاده نمی‌شوند.
-ابزارهای معرفی‌شده کلاینت باید توسط همان کلاینت اجرا شوند، نه ابزارهای فایل محلی سرور.
-درخواست‌های ابزار می‌توانند خروجی stream را تا پایان تجزیه بافر کنند.
-قرارداد SSE و ماتریس سازگاری را در [مرجع HTTP](../reference/http-api.md) ببینید.
+Only the last message's text content is used as conversation input.
+Sending a complete OpenAI history array does not independently replay that history.
+All completions share one queue and active session; this is not a multitenant server.
+The reasoner model name affects the thinking default, not Expert selection in the upstream service.
+Parameters such as `temperature` and `max_tokens` are not sent upstream.
+Tools declared by the client must be executed by that client, not by the server's local file tools.
+Tool requests can buffer stream output until parsing finishes.
+See the [HTTP reference](../reference/http-api.md) for the SSE contract and compatibility matrix.
 
-سرور TLS، rate limit یا جداسازی مالک نشست ندارد و CORS آن wildcard است.
-آن را بدون حفاظت بیرونی روی شبکه عمومی منتشر نکنید.
+The server has no TLS, rate limiting, or session-owner isolation, and its CORS policy uses a wildcard.
+Do not expose it on a public network without external protection.
 
-## شواهد و اعتبار
+## Evidence and Validity
 
-مالک مسیرها: [source/server/index.ts](../../source/server/index.ts)، `startServer`.
-مالک ورودی: [source/server/request.ts](../../source/server/request.ts)، `buildCompletionPrompt`.
-مالک اشتراک: [source/server/session.ts](../../source/server/session.ts)، `enqueueCompletion` و `runCompletion`.
-مالک توکن: [source/server/http.ts](../../source/server/http.ts)، `getToken`؛ بازگشت به [نمایه](../README.md).
-نسخه مبنا: **0.10.1**؛ بازبینی: **2026-10-28**؛ تحلیل ایستا، بدون اجرای سرور یا آزمون DeepSeek.
+Route owner: [source/server/index.ts](../../source/server/index.ts), `startServer`.
+Input owner: [source/server/request.ts](../../source/server/request.ts), `buildCompletionPrompt`.
+Shared-state owner: [source/server/session.ts](../../source/server/session.ts), `enqueueCompletion` and `runCompletion`.
+Token owner: [source/server/http.ts](../../source/server/http.ts), `getToken`; return to the [index](../README.md).
+Baseline version: **0.10.1**; reviewed: **2026-10-28**; static analysis, without running the server or testing DeepSeek.

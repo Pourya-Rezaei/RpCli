@@ -1,107 +1,107 @@
-# ترمینال، متن فارسی و جهت نمایش
+# Terminals, Persian Text, and Display Direction
 
-تاریخ بررسی: 2026-10-28 | نسخه: 0.10.1
-این توضیح مبتنی بر منبع است؛ چیدمان در ترمینال واقعی، فونت‌ها و ورودی فارسی در زمان اجرا آزموده نشده‌اند.
+Review date: 2026-10-28 | Version: 0.10.1
+This explanation is source-based; layout in real terminals, fonts, and Persian input have not been tested at runtime.
 
-## متن منطقی در برابر متن نمایشی
+## Logical Text Versus Display Text
 
-ترتیب ذخیرهٔ نویسه‌های فارسی با ترتیب خانه‌های قابل مشاهده روی صفحه یکسان نیست.
-در متن آمیخته با مسیر، عدد و شناسهٔ لاتین، الگوریتم دوطرفه دربارهٔ ترتیب نمایش تصمیم می‌گیرد.
-نباید برای اصلاح یک نمایش نامناسب، محتوای اصلی پیام یا مسیر فایل را دستی معکوس کرد.
-`toTerminalText` در [bidiText.ts](../../source/core/bidiText.ts) این تفاوت را در مرز نمایش هدف می‌گیرد.
-قصد طراحی آن نگه‌داشتن متن API و دادهٔ ذخیره‌شده در ترتیب منطقی و تبدیل فقط رشته‌های رو به ترمینال است.
-این تابع موتور شکل‌دهی حروف، انتخاب فونت یا پیاده‌سازی کامل رفتار مکان‌نما نیست.
+The storage order of Persian characters is not the same as the order of visible cells on the screen.
+In text mixed with paths, numbers, and Latin identifiers, the bidirectional algorithm determines display order.
+Do not manually reverse the original message content or file path to fix an unsuitable display.
+`toTerminalText` in [bidiText.ts](../../source/core/bidiText.ts) addresses this distinction at the display boundary.
+Its design intent is to keep API text and stored data in logical order and transform only terminal-facing strings.
+This function is not a letter-shaping engine, font selector, or complete implementation of cursor behavior.
 
-## تشخیص RTL و قابلیت ترمینال
+## RTL Detection and Terminal Capability
 
-`containsRightToLeftText` با regex محدوده‌های عبری، عربی و شکل‌های نمایشی مرتبط را تشخیص می‌دهد.
-این تشخیص بر وجود نویسه‌ها تکیه دارد، نه زبان‌شناسی یا تشخیص زبان فارسی یک جمله.
-`terminalSupportsBidirectionalText` وجود `VTE_VERSION` یا `KONSOLE_VERSION` را کافی می‌داند.
-این یک heuristic محیطی است؛ آزمون عملی رفتار ترمینال یا تضمین صحت همهٔ نسخه‌ها نیست.
-اگر این متغیرها موجود باشند، `toTerminalText` متن را دست‌نخورده برمی‌گرداند.
-در محیط‌های دیگر، تابع برای هر خط دارای RTL از `bidi-js` استفاده می‌کند.
-`getEmbeddingLevels` سطح‌های جهت را محاسبه می‌کند و `getReorderedString` رشتهٔ نمایشی می‌سازد.
-خطوط فاقد نویسهٔ RTL تغییر نمی‌کنند و جداسازی با newline حفظ می‌شود.
-بنابراین وجود متغیر محیطی اشتباه می‌تواند با رفتار واقعی نمایش سازگار نباشد.
+`containsRightToLeftText` detects Hebrew, Arabic, and related presentation-form ranges using a regex.
+This detection relies on the presence of characters, not linguistic analysis or identifying a sentence as Persian.
+`terminalSupportsBidirectionalText` considers the presence of `VTE_VERSION` or `KONSOLE_VERSION` sufficient.
+This is an environmental heuristic, not a practical test of terminal behavior or a correctness guarantee for every version.
+If these variables are present, `toTerminalText` returns the text unchanged.
+In other environments, the function uses `bidi-js` for each line containing RTL text.
+`getEmbeddingLevels` computes direction levels, and `getReorderedString` builds the display string.
+Lines without RTL characters remain unchanged, and newline separation is preserved.
+An incorrectly set environment variable may therefore be inconsistent with actual display behavior.
 
 ```text
 logical message -> Markdown tokens -> terminal-facing transformation -> Ink
 logical message -> transcript / API (not a visual reverse of the message)
 ```
 
-## Markdown در Ink
+## Markdown in Ink
 
-`MarkdownText` در [MarkdownText.tsx](../../source/components/MarkdownText.tsx) از tokenهای Marked و مؤلفه‌های Ink استفاده می‌کند.
-این مسیر DOM مرورگر یا یک موتور HTML/CSS با ویژگی direction نیست.
-`terminalToken` و `terminalCell` تبدیل جهت را روی متن و فرزندان tokenها اعمال می‌کنند.
-عنوان، بند، تأکید، لینک، فهرست پایه، جدول و بلوک کد مسیرهای رندر مشخص دارند.
-وجود Marked به معنی پشتیبانی کامل تمام جزئیات Markdown در خروجی ترمینال نیست.
-مثلاً فهرست با bullet ساده نمایش داده می‌شود؛ نباید شکل خروجی مرورگر را قرارداد ترمینال دانست.
-`renderInline` متن لینک و نشانی آن را در خروجی متنی کنار هم می‌آورد.
-ترکیب نشانی لاتین با عنوان فارسی از موارد حساس جهت نمایش است.
+`MarkdownText` in [MarkdownText.tsx](../../source/components/MarkdownText.tsx) uses Marked tokens and Ink components.
+This path is not a browser DOM or an HTML/CSS engine with a direction property.
+`terminalToken` and `terminalCell` apply direction transformation to text and token children.
+Headings, paragraphs, emphasis, links, basic lists, tables, and code blocks have specific rendering paths.
+The presence of Marked does not mean that terminal output fully supports every Markdown detail.
+For example, lists use simple bullets; browser output appearance should not be treated as the terminal contract.
+`renderInline` places link text and its address alongside each other in text output.
+Combining a Latin address with a Persian title is a direction-sensitive display case.
 
-## تفاوت کد بلوکی و کد درون‌خطی
+## Block Code Versus Inline Code
 
-`terminalToken` برای token نوع `code` زود بازمی‌گردد و بازچینی جهت را انجام نمی‌دهد.
-بلوک‌های کد از مسیر `SyntaxHighlight` نمایش داده می‌شوند تا متن کد با بازچینی عمومی تغییر نکند.
-`syntaxLanguage` aliasهایی مانند `ts` و `sh` را تبدیل می‌کند و برای زبان ناشناخته به `plaintext` برمی‌گردد.
-در مقابل، `codespan` در استثنای بلوک کد نیست و تبدیل جهت روی متن آن می‌تواند اعمال شود.
-پس قرار دادن فارسی در backtick درون‌خطی همان تضمین عبور بدون بازچینی بلوک را ندارد.
-برای بررسی یک دستور یا مسیر پیچیدهٔ آمیخته، متن منطقی منبع را از شکل ظاهری آن جدا ارزیابی کنید.
-این سند توصیه به افزودن نویسه‌های کنترل جهت پنهان به فرمان اجرایی نمی‌کند.
+`terminalToken` returns early for a token of type `code` and does not reorder its direction.
+Code blocks are displayed through `SyntaxHighlight` so general reordering does not alter code text.
+`syntaxLanguage` converts aliases such as `ts` and `sh` and falls back to `plaintext` for an unknown language.
+By contrast, `codespan` is not covered by the code-block exception, so direction transformation may apply to its text.
+Putting Persian text inside inline backticks therefore does not offer the same guarantee of passing through without reordering as a block.
+When reviewing a complex mixed-text command or path, assess the source's logical text separately from its visual appearance.
+This document does not recommend adding hidden direction-control characters to executable commands.
 
-## جدول و عرض متن
+## Tables and Text Width
 
-در `renderBlock`، عرض ستون‌های جدول با طول رشته و padding محاسبه می‌شود.
-طول رشتهٔ JavaScript الزاماً تعداد خانه‌های ترمینال نیست؛ نویسهٔ ترکیبی و نویسهٔ پهن می‌توانند متفاوت باشند.
-بازچینی دوطرفه به‌تنهایی این تفاوت اندازه‌گیری را حل نمی‌کند.
-در نتیجه، جدول دارای فارسی، نشانهٔ ترکیبی یا متن آمیخته نیازمند مشاهده در ترمینال مقصد است.
-نباید از وجود جدول در renderer، تضمین هم‌ترازی در هر فونت و عرض پنجره برداشت کرد.
-همین تفکیک دربارهٔ wrapping بندها و خوانایی مسیر طولانی نیز مهم است.
+In `renderBlock`, table column widths are calculated using string length and padding.
+JavaScript string length is not necessarily the number of terminal cells; combining and wide characters can differ.
+Bidirectional reordering alone does not resolve this measurement difference.
+A table containing Persian, combining marks, or mixed text therefore needs inspection in the target terminal.
+Table support in the renderer should not be interpreted as a guarantee of alignment in every font and window width.
+The same distinction matters for paragraph wrapping and long-path readability.
 
-## ورودی و مختصات مکان‌نما
+## Input and Cursor Coordinates
 
-[textCursor.ts](../../source/core/textCursor.ts) رشتهٔ ورودی را به خط، ستون و offset تبدیل می‌کند.
-`endPosition`، `cursorOffset` و `positionAt` بر newline و طول رشته تکیه دارند.
-این مختصات، موقعیت منطقی رشته‌اند، نه اندازه‌گیری مستقیم ستون بصری پس از BiDi.
-`previousCharacterOffset` و `nextCharacterOffset` از `Intl.Segmenter` با granularity برابر `grapheme` استفاده می‌کنند.
-این انتخاب مانع فروکاستن هر حرکت به یک واحد UTF-16 می‌شود و برای خوشه‌های چندنویسه‌ای اهمیت دارد.
-اما segmentation به‌تنهایی جهت بصری کلید چپ/راست یا شکل‌دهی فارسی را تعیین نمی‌کند.
-`previousWordOffset`، `nextWordOffset` و `nextDeleteWordOffset` بر الگوهای whitespace تکیه دارند.
-پس «کلمه» در این مسیر یک تعریف عملی بر پایهٔ فاصله است، نه تحلیل واژگانی فارسی.
-نام locale برابر `en` در Segmenter را نباید ادعای غیرفعال‌بودن متن Unicode دانست؛ اینجا واحد انتخابی grapheme است.
+[textCursor.ts](../../source/core/textCursor.ts) converts the input string into lines, columns, and offsets.
+`endPosition`, `cursorOffset`, and `positionAt` rely on newlines and string length.
+These coordinates are logical string positions, not direct measurements of visual columns after BiDi.
+`previousCharacterOffset` and `nextCharacterOffset` use `Intl.Segmenter` with `grapheme` granularity.
+This choice avoids reducing each movement to a single UTF-16 unit and matters for multi-character clusters.
+However, segmentation alone does not determine the visual direction of left/right keys or Persian shaping.
+`previousWordOffset`, `nextWordOffset`, and `nextDeleteWordOffset` rely on whitespace patterns.
+Here, "word" is therefore a practical, whitespace-based definition, not Persian lexical analysis.
+The Segmenter's `en` locale should not be taken as a claim that Unicode text is disabled; the selected unit here is a grapheme.
 
-## مالکیت کلیدها و پیشنهادها
+## Ownership of Keys and Suggestions
 
-`useComposerKeys` در [useComposerKeys.ts](../../source/components/chat/useComposerKeys.ts) میان ورودی، انتخابگرها و حالت گفتگو تصمیم می‌گیرد.
-`mentionQuery` در [textCursor.ts](../../source/core/textCursor.ts) عبارت `@` انتهای ورودی را تشخیص می‌دهد.
-`slashCommandQuery` ابتدای فرمان اسلش را از ورودی استخراج می‌کند.
-`FzfFilePicker` در [FzfFilePicker.tsx](../../source/components/FzfFilePicker.tsx) تطبیق fuzzy داخلی و حداکثر هفت نتیجه دارد.
-انتخاب مسیر فقط اشارهٔ متنی را وارد composer می‌کند؛ محتویات فایل خودکار attach نمی‌شود.
-`SlashCommandPicker` در [SlashCommandPicker.tsx](../../source/components/SlashCommandPicker.tsx) پیشنهادهای فرمان را نمایش می‌دهد.
-مجموعهٔ واقعی فرمان‌ها را `slashCommands` در [commands/index.ts](../../source/commands/index.ts) تعریف می‌کند، نه نام‌هایی که در prompt دیده می‌شوند.
-جزئیات کلیدها باید از [مرجع صفحه‌کلید و فرمان‌ها](../reference/keyboard-and-slash-commands.md) خوانده شود.
+`useComposerKeys` in [useComposerKeys.ts](../../source/components/chat/useComposerKeys.ts) makes decisions among input, pickers, and conversation mode.
+`mentionQuery` in [textCursor.ts](../../source/core/textCursor.ts) detects an `@` expression at the end of input.
+`slashCommandQuery` extracts the start of a slash command from input.
+`FzfFilePicker` in [FzfFilePicker.tsx](../../source/components/FzfFilePicker.tsx) uses internal fuzzy matching and returns at most seven results.
+Selecting a path only inserts a textual mention into the composer; file content is not automatically attached.
+`SlashCommandPicker` in [SlashCommandPicker.tsx](../../source/components/SlashCommandPicker.tsx) displays command suggestions.
+The actual command set is defined by `slashCommands` in [commands/index.ts](../../source/commands/index.ts), not by names appearing in a prompt.
+Key details should be read in the [keyboard and command reference](../reference/keyboard-and-slash-commands.md).
 
-## جریان زنده و پایداری نمایش
+## Live Streaming and Display Stability
 
-`createLiveStream` در [createLiveStream.ts](../../source/components/chat/createLiveStream.ts) متن ورودی جریان را تقریباً با بازهٔ 50 میلی‌ثانیه برای نمایش دسته‌بندی می‌کند.
-با کامل‌شدن جمله، سطح‌های جهت متن آمیخته ممکن است تغییر کنند؛ قطعهٔ ناقص همیشه نمایندهٔ چیدمان نهایی نیست.
-`MessageRow` در [MessageRow.tsx](../../source/components/chat/MessageRow.tsx) و نمای اصلی نقش پیام‌ها را از محتوای در حال رشد جدا می‌کنند.
-پنهان‌کردن markup ابزار نیز مسیر دیگری است و نباید با تبدیل RTL اشتباه گرفته شود.
-`ChatStatusBar` در [ChatStatusBar.tsx](../../source/components/chat/ChatStatusBar.tsx) وضعیت رابط را نشان می‌دهد؛ شاخصی برای صحت رندر فارسی نیست.
-وابستگی به Ink و کدگذاری کلید توسط ترمینال، نتیجهٔ واقعی را به محیط اجرا وابسته می‌کند.
+`createLiveStream` in [createLiveStream.ts](../../source/components/chat/createLiveStream.ts) batches incoming stream text for display at roughly 50-millisecond intervals.
+As a sentence becomes complete, mixed-text direction levels may change; an incomplete chunk does not always represent the final layout.
+`MessageRow` in [MessageRow.tsx](../../source/components/chat/MessageRow.tsx) and the main view separate message roles from growing content.
+Hiding tool markup is a separate path and should not be confused with RTL transformation.
+`ChatStatusBar` in [ChatStatusBar.tsx](../../source/components/chat/ChatStatusBar.tsx) displays interface state; it is not an indicator of correct Persian rendering.
+Dependence on Ink and the terminal's key encoding makes the actual result environment-dependent.
 
-## شواهد آزمون و حد اطمینان
+## Test Evidence and Confidence Limits
 
-[bidiText.test.ts](../../source/core/bidiText.test.ts) پنج مورد AVA برای منطق تبدیل جهت اعلام کرده است.
-این موارد در این کار اجرا نشده‌اند و پوشش همهٔ ترمینال‌ها، شکل‌دهی حروف یا مسیر مکان‌نما را ثابت نمی‌کنند.
-برای بازبینی بعدی باید متن فارسی خالص، فارسی با مسیر لاتین، اعداد، نیم‌فاصله و نویسه‌های ترکیبی از هم جدا بررسی شوند.
-همچنین باید محیط VTE/Konsole و محیط بدون این متغیرها، ورودی چندخطی و تغییر عرض پنجره مقایسه شوند.
-هدف آن بررسی، تطبیق متن ذخیره‌شده با متن منطقی و ارزیابی مستقل شکل نمایش خواهد بود، نه معکوس‌کردن داده برای زیبایی ظاهری.
-هیچ نتیجهٔ بصری آن بررسی فرضی در این صفحه به‌عنوان انجام‌شده گزارش نمی‌شود.
+[bidiText.test.ts](../../source/core/bidiText.test.ts) declares five AVA cases for direction-transformation logic.
+These cases were not run as part of this work and do not establish coverage of all terminals, letter shaping, or cursor behavior.
+A future review should separately examine pure Persian text, Persian with Latin paths, numbers, zero-width non-joiners, and combining characters.
+It should also compare VTE/Konsole environments with environments lacking those variables, multiline input, and window-width changes.
+That review would aim to compare stored text with logical text and independently assess display appearance, not reverse data for visual appeal.
+No visual result from that hypothetical review is reported here as completed.
 
-## مطالعهٔ مرتبط
+## Related Reading
 
-[معماری](architecture.md) مالکیت مؤلفه‌ها و [جریان‌های اجرا](execution-flows.md) رابطهٔ stream و پیام رابط را روشن می‌کنند.
-[پیکربندی و ذخیره‌سازی](../reference/configuration-and-storage.md) محل رونوشت‌ها و [محدودیت‌های شناخته‌شده](../reference/known-limitations.md) مرز ادعاهای سازگاری را ثبت می‌کنند.
-برای مسیر مطالعهٔ کامل به [نمایهٔ مستندات](../README.md) مراجعه کنید.
+[Architecture](architecture.md) clarifies component ownership, and [execution flows](execution-flows.md) explains the relationship between streams and interface messages.
+[Configuration and storage](../reference/configuration-and-storage.md) records transcript locations, and [known limitations](../reference/known-limitations.md) defines the bounds of compatibility claims.
+For the complete reading path, see the [documentation index](../README.md).

@@ -1,55 +1,55 @@
-# تولید و تأیید پیام commit
+# Generating and Approving Commit Messages
 
-این راهنما برای ساخت پیام از diff و بازبینی پیش از اجرای Git است.
-در این گردش‌کار، محتوای diff برای DeepSeek ارسال می‌شود؛ ابتدا اسرار را بررسی کنید.
+This guide covers creating a message from a diff and reviewing it before running Git.
+This workflow sends the diff content to DeepSeek; check for secrets first.
 
-## آماده‌کردن تغییرها
+## Preparing Changes
 
-در مخزن موردنظر، وضعیت و diff را خودتان بازبینی کنید:
+In the target repository, review the status and diff yourself:
 
 ```sh
 git status --short
 git diff --staged
 ```
 
-فایل‌های موردنظر را با روال معمول خود stage کنید؛ این راهنما هیچ staging خودکاری وعده نمی‌دهد.
-سپس تولید پیام از تغییرهای staged را درخواست کنید:
+Stage the intended files using your usual workflow; this guide does not promise any automatic staging.
+Then request a message generated from the staged changes:
 
 ```sh
 rc -c
 ```
 
-برنامه ابتدا دستور تولید پیام و سپس diff را به مدل می‌فرستد.
-متن تولیدشده را از نظر دامنه، صحت و اطلاعات حساس بخوانید.
-Conventional Commits هدف پرامپت است، نه قالبی که اعتبارسنج برنامه آن را تضمین کند.
+The application sends the message-generation instruction to the model first, followed by the diff.
+Review the generated text for scope, accuracy, and sensitive information.
+Conventional Commits is the prompt's target, not a format guaranteed by application validation.
 
-## بررسی تغییرهای گسترده‌تر
+## Reviewing Broader Changes
 
-برای انتخاب `git diff HEAD` به عنوان ورودی تولید پیام:
+To select `git diff HEAD` as the message-generation input:
 
 ```sh
 rc -c -a
 ```
 
-`-a` در این برنامه هیچ فایلی را stage نمی‌کند.
-همچنین به `git commit` گزینه `-a` اضافه نمی‌شود.
-بنابراین پیام ممکن است تغییرهای tracked و unstaged را توصیف کند، ولی commit فقط stagedها را بگیرد.
-فایل‌های untracked نیز جزو `git diff HEAD` نیستند.
-قبل از تأیید، ورودی پیام را با محتوای واقعی commit هماهنگ کنید.
+In this application, `-a` does not stage any files.
+It also does not add the `-a` option to `git commit`.
+The message may therefore describe tracked, unstaged changes, while the commit includes only staged changes.
+Untracked files are not included in `git diff HEAD` either.
+Before approving, align the message input with the actual commit content.
 
-## تأیید و بررسی نتیجه
+## Approval and Result Verification
 
-رابط `CommitView` تأیید `y/n` می‌خواهد؛ تنها پس از بازبینی موافقت کنید.
-عملیات نهایی `git commit -F -` است و پیام از ورودی استاندارد داده می‌شود.
-hookها، هویت Git و قواعد مخزن همچنان می‌توانند commit را رد کنند.
-در صورت خطا وضعیت Git را بررسی کنید؛ تولید پیام را موفقیت commit فرض نکنید.
-درخواست حذف نشست تولید پیام ارسال می‌شود، اما موفقیت حذف دوردست تضمین نمی‌شود.
+The `CommitView` interface requests `y/n` confirmation; approve only after reviewing.
+The final operation is `git commit -F -`, with the message supplied through standard input.
+Hooks, Git identity, and repository rules can still reject the commit.
+If an error occurs, check Git status; do not treat message generation as a successful commit.
+A request to delete the message-generation session is sent, but successful remote deletion is not guaranteed.
 
-## شواهد و مراجع
+## Evidence and References
 
-مالک diff و commit: [source/actions/commitMessage.ts](../../source/actions/commitMessage.ts)، `getGitDiff` و `executeCommit`.
-مالک تولید: همان فایل، `generateCommitMessage`.
-مالک تأیید: [source/components/CommitView.tsx](../../source/components/CommitView.tsx)، `CommitView`.
-گزینه‌ها در [مرجع CLI](../reference/cli.md) و دستور مدل در [پرامپت‌ها](../reference/prompts.md) آمده است.
-برای محدودیت‌های عمومی [محدودیت‌ها](../reference/known-limitations.md) و [نمایه](../README.md) را ببینید.
-نسخه مبنا: **0.10.1**؛ بازبینی: **2026-10-28**؛ تحلیل ایستا، بدون آزمون اجرایی DeepSeek.
+Diff and commit owner: [source/actions/commitMessage.ts](../../source/actions/commitMessage.ts), `getGitDiff` and `executeCommit`.
+Generation owner: `generateCommitMessage` in the same file.
+Approval owner: [source/components/CommitView.tsx](../../source/components/CommitView.tsx), `CommitView`.
+Options appear in the [CLI reference](../reference/cli.md), and the model instruction appears in [prompts](../reference/prompts.md).
+For general limitations, see [known limitations](../reference/known-limitations.md) and the [index](../README.md).
+Baseline version: **0.10.1**; reviewed: **2026-10-28**; static analysis, without runtime testing of DeepSeek.

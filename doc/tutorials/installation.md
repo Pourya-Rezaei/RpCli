@@ -1,51 +1,51 @@
-# نصب و آماده‌سازی
+# Installation and Setup
 
-هدف این آموزش، رسیدن از یک محیط Node.js به اجرای تعاملی `rc` است.
-برای شروع به ترمینال، حساب وب DeepSeek و دسترسی شبکه هنگام استفاده نیاز دارید.
+This tutorial takes you from a Node.js environment to running `rc` interactively.
+You need a terminal, a DeepSeek web account, and network access during use.
 
-## ۱. پیش‌نیاز را بررسی کنید
+## 1. Check Prerequisites
 
 ```sh
 node --version
 npm --version
 ```
 
-برای وابستگی‌های قفل‌شده، Node.js نسخه ۲۲ یا جدیدتر توصیه می‌شود.
-حداقل اعلام‌شده بسته ۱۸ است، اما Ink 7 در قفل وابستگی‌ها Node.js 22 می‌خواهد.
-این توصیه از بررسی وابستگی‌ها آمده و گواه سازگاری اجرایی همه نسخه‌ها نیست.
+Node.js 22 or later is recommended for the locked dependencies.
+The package declares a minimum of 18, but Ink 7 in the dependency lockfile requires Node.js 22.
+This recommendation comes from inspecting dependencies, not from runtime compatibility testing of every version.
 
-## ۲. بسته را نصب کنید
+## 2. Install the Package
 
 ```sh
 npm install --global @rezaparsian/rp-cli@0.10.1
 rc --version
 ```
 
-خروجی مورد انتظار نسخه، `0.10.1` است؛ آن را در محیط خود بررسی کنید.
-این فرمان‌ها دستورالعمل برای خواننده‌اند و در تهیه این مستند اجرا نشده‌اند.
-برای ساخت از مخزن، به [آماده‌سازی توسعه](../development/setup-and-scripts.md) بروید.
+The expected version output is `0.10.1`; verify it in your environment.
+These commands are instructions for the reader and were not run while preparing this document.
+To build from the repository, see [development setup](../development/setup-and-scripts.md).
 
-## ۳. توکن وب را تنظیم کنید
+## 3. Configure the Web Token
 
 ```sh
 rc
 ```
 
-اگر `DEEPSEEK_TOKEN` موجود نباشد، فرم تنظیم توکن نمایش داده می‌شود.
-در مرورگر به حساب وب DeepSeek وارد شوید و دستور نمایش‌داده‌شده در برنامه را بررسی کنید.
-آن دستور مقدار توکن نشست وب را از `localStorage` می‌خواند؛ این مقدار API key رسمی نیست.
-توکن را فقط در ورودی پوشیده برنامه وارد کنید، نه در درخواست پشتیبانی یا Git.
-اگر مرورگر خودکار باز نشد، نشانی نمایش‌داده‌شده را دستی باز کنید.
-ذخیره توکن به معنی اعتبارسنجی موفق آن روی سرور نیست.
+If `DEEPSEEK_TOKEN` is absent, the token setup form appears.
+Sign in to your DeepSeek web account in a browser and inspect the command displayed by the application.
+That command reads the web session token from `localStorage`; this is not an official API key.
+Enter the token only in the application's masked input, not in a support request or Git.
+If the browser does not open automatically, open the displayed address manually.
+Saving the token does not mean it has been successfully validated by the server.
 
-تنظیمات در `~/.config/rp-cli/.env` قرار می‌گیرند.
-متغیر محیطی موجود هنگام بارگذاری dotenv بازنویسی نمی‌شود.
-جزئیات تقدم و مجوزها در [تنظیمات و ذخیره‌سازی](../reference/configuration-and-storage.md) آمده است.
+Settings are stored in `~/.config/rp-cli/.env`.
+An existing environment variable is not overwritten when dotenv loads.
+See [configuration and storage](../reference/configuration-and-storage.md) for precedence and permissions.
 
-## گام بعد و شواهد
+## Next Step and Evidence
 
-با [اولین نشست](first-session.md) ادامه دهید؛ فهرست مسیرها در [نمایه مستندات](../README.md) است.
-مالک ورود و گزینه‌ها: [source/cli.tsx](../../source/cli.tsx)، متغیرهای `cli` و `firstArg`.
-مالک فرم: [source/components/TokenSetupView.tsx](../../source/components/TokenSetupView.tsx)، `TokenSetupView`.
-مالک ذخیره: [source/core/TokenConfig.ts](../../source/core/TokenConfig.ts)، `saveDeepSeekToken` و `tokenConfigPath`.
-نسخه مبنا: **0.10.1**؛ بازبینی: **2026-10-28**؛ روش: تحلیل ایستا، بدون آزمون اجرایی DeepSeek.
+Continue with your [first session](first-session.md); the [documentation index](../README.md) lists the available paths.
+Entry point and options owner: [source/cli.tsx](../../source/cli.tsx), variables `cli` and `firstArg`.
+Form owner: [source/components/TokenSetupView.tsx](../../source/components/TokenSetupView.tsx), `TokenSetupView`.
+Storage owner: [source/core/TokenConfig.ts](../../source/core/TokenConfig.ts), `saveDeepSeekToken` and `tokenConfigPath`.
+Baseline version: **0.10.1**; review: **2026-10-28**; method: static analysis, without live DeepSeek testing.

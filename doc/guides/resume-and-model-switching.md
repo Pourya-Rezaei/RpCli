@@ -1,54 +1,54 @@
-# بازیابی نشست و تغییر مدل
+# Resuming Sessions and Switching Models
 
-این راهنما برای ادامه کار قبلی یا انتقال زمینه به مدل دیگر است.
-شناسه نشست را داده حساس عملیاتی بدانید و همراه محتوای گفتگو منتشر نکنید.
+This guide covers continuing previous work or transferring context to another model.
+Treat the session ID as sensitive operational data and do not publish it alongside conversation content.
 
-## ادامه یک نشست
+## Resuming a Session
 
-شناسه پیام خروج نشست استفاده‌شده را نگه دارید و در همان پروژه اجرا کنید:
+Keep the ID shown in the exit message for a used session, and run this in the same project:
 
 ```sh
 rc resume SESSION_ID
 ```
 
-`SESSION_ID` را با شناسه واقعی جایگزین کنید؛ بدون آن CLI با خطا خارج می‌شود.
-شروع بازیابی، شناسه دوردست را انتخاب و رونوشت محلی موجود را بارگذاری می‌کند.
-پرامپت سیستم برای این مسیر دوباره مانند نشست تازه ارسال نمی‌شود.
-نبود رونوشت محلی الزاماً به معنی نبود نشست دوردست نیست.
-اگر نشست دوردست یافت نشود، ارسال بعدی ممکن است نشست تازه بسازد؛ بازیابی سخت‌گیرانه تضمین نشده است.
-برای تشخیص، شناسه نشست پاسخ و زمینه پاسخ مدل را بررسی کنید.
+Replace `SESSION_ID` with the actual ID; without it, the CLI exits with an error.
+Starting a resume selects the remote ID and loads any existing local transcript.
+This path does not resend the system prompt as it would for a fresh session.
+The absence of a local transcript does not necessarily mean that the remote session is absent.
+If the remote session is not found, the next send may create a fresh session; strict resumption is not guaranteed.
+To diagnose this, inspect the response's session ID and the context of the model's response.
 
-## تفاوت سه محل داده
+## Three Distinct Data Locations
 
-رونوشت تعاملی در `~/.config/rp-cli/sessions/<session-id>.json` ذخیره می‌شود.
-این رونوشت پیام‌های کاربر، پاسخ، thinking و console را نگه می‌دارد، نه لوگوها را.
-لاگ اختیاری در `~/.config/rp-cli/logs/<session-id>/` رویدادها و داده‌های خام‌تری دارد.
-`/logging` یا `/log` فقط همین logging اختیاری را تغییر می‌دهد.
-خاموش‌کردن آن رونوشت تعاملی را غیرفعال یا داده‌های قبلی را حذف نمی‌کند.
-تاریخچه DeepSeek محل سوم است و با فایل محلی یکی نیست.
-برای تقدم تنظیمات و مجوزها [ذخیره‌سازی](../reference/configuration-and-storage.md) را بخوانید.
+The interactive transcript is stored in `~/.config/rp-cli/sessions/<session-id>.json`.
+This transcript retains user, response, thinking, and console messages, but not logos.
+Optional logs in `~/.config/rp-cli/logs/<session-id>/` contain events and more raw data.
+`/logging` or `/log` changes only this optional logging.
+Turning it off does not disable the interactive transcript or delete existing data.
+DeepSeek history is the third location and is distinct from local files.
+For configuration precedence and permissions, read [storage](../reference/configuration-and-storage.md).
 
-## تغییر مدل با حفظ زمینه
+## Switching Models While Preserving Context
 
-در رابط تعاملی `/model` را وارد کنید و تأیید مربوط را بررسی کنید.
-مدل‌ها در این رابط `default` و `expert` هستند.
-پس از فعالیت کاربر، انتقال با خلاصه‌سازی گفتگو و ساخت نشست تازه انجام می‌شود.
-این انتقال کپی کامل پیام‌ها نیست؛ جزئیات مهم را در درخواست بعدی دوباره تصریح کنید.
-نشست دوردست قبلیِ استفاده‌شده باقی می‌ماند.
-ترجیح مدل در فایل تنظیمات ذخیره می‌شود؛ صرف تنظیم متغیر محیطی `RP_CLI_MODEL` معادل آن نیست.
-جست‌وجوی وب برای مدل غیرپیش‌فرض در انتقال پایین‌دست محدود است.
+Enter `/model` in the interactive interface and review the corresponding confirmation.
+The models in this interface are `default` and `expert`.
+After user activity, the transfer summarizes the conversation and creates a fresh session.
+This transfer is not a full copy of the messages; restate important details in your next request.
+The previously used remote session remains.
+The model preference is stored in the configuration file; merely setting the `RP_CLI_MODEL` environment variable is not equivalent.
+Web search for a non-default model is restricted in the underlying transport.
 
-## پاک‌سازی و محدودیت
+## Cleanup and Limitations
 
-`/clear` وضعیت گفتگوی دوردست را از نو آغاز و رونوشت محلی قبلی را حذف می‌کند.
-آن را فرمان پاک‌کردن todoها یا تضمین حذف همه داده‌های دوردست ندانید.
-نشست تازه و استفاده‌نشده هنگام خروج به صورت best-effort برای حذف ارسال می‌شود.
-پاسخ‌گرفتن از درخواست حذف، اثبات حذف موفق دوردست نیست.
-برای خطاها به [رفع اشکال](troubleshooting.md) و [نمایه](../README.md) بروید.
+`/clear` restarts remote conversation state and deletes the previous local transcript.
+Do not treat it as a command to clear todos or as a guarantee that all remote data is deleted.
+On exit, deletion of a fresh, unused session is requested on a best-effort basis.
+Receiving a response to a deletion request is not proof of successful remote deletion.
+For errors, see [troubleshooting](troubleshooting.md) and the [index](../README.md).
 
-## شواهد و اعتبار
+## Evidence and Validity
 
-مالک انتقال: [source/components/chat/useChatSession.ts](../../source/components/chat/useChatSession.ts)، `useChatSession`.
-مالک API: [source/core/apiClient.ts](../../source/core/apiClient.ts)، `setCurrentSessionId` و `sendMessage`.
-مالک رونوشت: [source/core/SessionTranscript.ts](../../source/core/SessionTranscript.ts)، `loadSessionTranscript` و `saveSessionTranscript`.
-نسخه مبنا: **0.10.1**؛ بازبینی: **2026-10-28**؛ تحلیل ایستا، بدون آزمون اجرایی DeepSeek.
+Transfer owner: [source/components/chat/useChatSession.ts](../../source/components/chat/useChatSession.ts), `useChatSession`.
+API owner: [source/core/apiClient.ts](../../source/core/apiClient.ts), `setCurrentSessionId` and `sendMessage`.
+Transcript owner: [source/core/SessionTranscript.ts](../../source/core/SessionTranscript.ts), `loadSessionTranscript` and `saveSessionTranscript`.
+Baseline version: **0.10.1**; reviewed: **2026-10-28**; static analysis, without runtime testing of DeepSeek.

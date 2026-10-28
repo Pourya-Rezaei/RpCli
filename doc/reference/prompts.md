@@ -1,43 +1,43 @@
-# مرجع پرامپت‌ها
+# Prompt Reference
 
-نسخه `0.10.1`، تاریخ بررسی `2026-10-28`. این فایل‌ها دستور به مدل‌اند؛ به‌تنهایی کنترل امنیتی یا تضمین کیفیت خروجی نیستند.
+Version `0.10.1`, reviewed `2026-10-28`. These files instruct the model; they are not security controls or guarantees of output quality on their own.
 
-## سازنده‌ها و دارایی‌ها
+## Builders and Assets
 
-مالک بارگذاری: [source/prompts/index.ts](../../source/prompts/index.ts). `loadPrompt` فایل مجاور module را همگام می‌خواند؛ missing asset می‌تواند هنگام فراخوانی builder خطا بدهد.
+Loading owner: [source/prompts/index.ts](../../source/prompts/index.ts). `loadPrompt` synchronously reads a file adjacent to the module; a missing asset can cause an error when a builder is called.
 
-| builder | فایل | مصرف |
+| Builder | File | Usage |
 | --- | --- | --- |
-| `SystemPrompt` | [system.md](../../source/prompts/system.md) و [tools.md](../../source/prompts/tools.md) | آغاز گفتگوی عامل محلی |
-| `ServerSystemPrompt` | [server.md](../../source/prompts/server.md) | آغاز نشست سرور، بدون فعال‌سازی اجرای ابزار محلی |
-| `InitPrompt` | [init.md](../../source/prompts/init.md) | درخواست تولید راهنمای AGENTS برای repository |
-| `ContinuePrompt` | [continue.md](../../source/prompts/continue.md) | ادامهٔ وظیفه پس از توقف یا سقف ابزار |
-| `GitCommitMessage` | [gitMessage.md](../../source/prompts/gitMessage.md) | دستور تولید پیام commit |
-| `PlanPrompt(task)` | [plan.md](../../source/prompts/plan.md) | درج وظیفه در دستور برنامه‌ریزی |
-| `ExecutePlanPrompt(mode)` | [executePlan.md](../../source/prompts/executePlan.md) | شروع برنامهٔ تأییدشده با حالت مقصد |
+| `SystemPrompt` | [system.md](../../source/prompts/system.md) and [tools.md](../../source/prompts/tools.md) | Start a local-agent conversation |
+| `ServerSystemPrompt` | [server.md](../../source/prompts/server.md) | Start a server session without enabling local-tool execution |
+| `InitPrompt` | [init.md](../../source/prompts/init.md) | Request generation of an AGENTS guide for the repository |
+| `ContinuePrompt` | [continue.md](../../source/prompts/continue.md) | Continue a task after stopping or reaching the tool limit |
+| `GitCommitMessage` | [gitMessage.md](../../source/prompts/gitMessage.md) | Instruction to generate a commit message |
+| `PlanPrompt(task)` | [plan.md](../../source/prompts/plan.md) | Insert the task into the planning instruction |
+| `ExecutePlanPrompt(mode)` | [executePlan.md](../../source/prompts/executePlan.md) | Start an approved plan in the target mode |
 
-## تزریق زمینه
+## Context Injection
 
-`SystemPrompt` مقدارهای platform و cwd و شرح ابزارها را جایگزین می‌کند. شرح ابزار از `getToolDescriptions` در registry می‌آید. راهنمای elevation متناسب با win32 یا سایر پلتفرم‌ها تولید می‌شود.
+`SystemPrompt` substitutes platform, cwd, and tool descriptions. Tool descriptions come from `getToolDescriptions` in the registry. Elevation guidance is generated for win32 or other platforms as appropriate.
 
-`readAgentsMarkdown` فقط فایل AGENTS در cwd را می‌خواند؛ پیمایش سلسله‌مراتبی والد یا راهنمای جدا در هر زیردایرکتوری ندارد. نبود فایل به رشتهٔ خالی تبدیل می‌شود؛ خطاهای خواندن فایل موجود الزاماً پنهان نمی‌شوند. SystemPrompt و ServerSystemPrompt محتوای موجود را به انتهای prompt اضافه می‌کنند.
+`readAgentsMarkdown` reads only the AGENTS file in cwd; it does not traverse the parent hierarchy or load separate guides in each subdirectory. A missing file becomes an empty string; errors reading an existing file are not necessarily suppressed. SystemPrompt and ServerSystemPrompt append available content to the prompt.
 
-ServerSystemPrompt فهرست registry ابزار محلی را inject نمی‌کند. functionهای درخواست HTTP در مسیر `withToolInstructions` به prompt درخواست اضافه می‌شوند و اجرای آن‌ها بر عهدهٔ کلاینت است.
+ServerSystemPrompt does not inject the local-tool registry list. HTTP request functions are added to the request prompt through `withToolInstructions`, and their execution is the client's responsibility.
 
-## چه چیز enforce می‌شود؟
+## What Is Enforced?
 
-| موضوع | لایهٔ واقعی کنترل |
+| Concern | Actual Control Layer |
 | --- | --- |
-| توصیهٔ برنامه‌ریزی، پاسخ مناسب و Conventional Commits | متن prompt؛ تضمین ساختاری عمومی ندارد |
-| مسدودکردن ابزار mutating در plan | executor، مستقل از اطاعت مدل |
-| منع مسیر خارج cwd در ابزارهای مشخص | helper مسیر؛ با استثناهای مستندشده |
-| تأیید عملیات | callback رابط و mode در executor |
-| سقف دور ابزار | getAIResponse |
+| Planning advice, appropriate responses, and Conventional Commits | Prompt text; no general structural guarantee |
+| Blocking mutating tools in plan | Executor, independently of model compliance |
+| Rejecting paths outside cwd in specific tools | Path helper, with documented exceptions |
+| Operation confirmation | Interface callback and mode in the executor |
+| Tool-round limit | getAIResponse |
 
-بنابراین prompt «فقط بخوان» را نباید sandbox دانست. همچنین تولید فایل AGENTS توسط `/init` یک عملیات وابسته به مدل و ابزار است، نه scaffold قطعی داخل فرمان slash.
+A "read only" prompt must therefore not be treated as a sandbox. Generating an AGENTS file through `/init` also depends on the model and tools, rather than being deterministic scaffolding within the slash command.
 
-## چرخهٔ build و تغییر
+## Build and Change Lifecycle
 
-[scripts/copy-prompts.mjs](../../scripts/copy-prompts.mjs) فقط فایل‌های مستقیم `.md` را به `dist/source/prompts/` می‌برد. `pnpm build` ابتدا tsc سپس copy را اجرا می‌کند؛ `pnpm dev` یک‌بار copy و سپس watch TypeScript است. ویرایش Markdown لزوماً copy مجدد خودکار ایجاد نمی‌کند و خروجی stale پاک نمی‌شود.
+[scripts/copy-prompts.mjs](../../scripts/copy-prompts.mjs) copies only direct `.md` files to `dist/source/prompts/`. `pnpm build` runs tsc, then copy; `pnpm dev` copies once, then watches TypeScript. Editing Markdown does not necessarily trigger automatic recopying, and stale output is not removed.
 
-برای تغییر، asset مبدا و builder و مصرف‌کننده را با هم بررسی کنید. پس از تغییر قرارداد ابزار، شرح registry و مثال قالب و parser نیز باید هماهنگ بمانند. [راهنمای نگهداری](../development/documentation-maintenance.md) فهرست کنترل مستندات را دارد.
+When making changes, review the source asset, builder, and consumer together. After a tool-contract change, registry descriptions, format examples, and the parser must also remain aligned. The [Maintenance Guide](../development/documentation-maintenance.md) contains the documentation checklist.

@@ -1,62 +1,62 @@
-# تنظیمات و ذخیره‌سازی
+# Configuration and Storage
 
-مبنای بررسی: نسخه `0.10.1` در `2026-10-28`؛ خواندن کد، بدون بررسی حساب یا فایل شخصی کاربر.
+Review basis: version `0.10.1` on `2026-10-28`; code inspection without examining the user's account or personal files.
 
-## منابع تنظیمات
+## Configuration Sources
 
-[cli.tsx](../../source/cli.tsx) و [server/index.ts](../../source/server/index.ts) فایل تنظیمات را با dotenv بارگذاری می‌کنند؛ `override` درخواست نشده است. در نتیجه محیط موجود معمولاً بر مقدار همان نام در فایل اولویت دارد. این قاعده برای preference مدل استثنا دارد، چون مستقیماً از فایل خوانده می‌شود.
+[cli.tsx](../../source/cli.tsx) and [server/index.ts](../../source/server/index.ts) load the configuration file with dotenv; `override` is not requested. Existing environment values therefore generally take precedence over the same names in the file. The model preference is an exception because it is read directly from the file.
 
-| نام | مصرف‌کننده | معنا و پیش‌فرض |
+| Name | Consumer | Meaning and Default |
 | --- | --- | --- |
-| `DEEPSEEK_TOKEN` | App، API client، سرور | توکن نشست وب DeepSeek؛ پیش‌نیاز ارسال |
-| `RC_TOKEN` | `getToken` سرور | fallback برای توکن بالادستی؛ نه رمز مستقل کلاینت |
-| `DEEPSEEK_SESSION_ID` | API client هنگام import | شناسهٔ اولیهٔ نشست؛ initialization تعاملی جدید reset می‌کند |
-| `DEEPSEEK_MESSAGE_ID` | API client هنگام import | شناسهٔ عددی اولیهٔ پیام والد |
-| `RP_CLI_LOG_CHAT` | LogChat | فعال با `1`، `true` یا `yes`؛ پیش‌فرض خاموش |
-| `RP_CLI_MODEL` | TokenConfig | مقدار ذخیره‌شدهٔ `default` یا `expert`؛ سایر مقادیر default |
-| `PORT` | startServer | پیش‌فرض 3000؛ گزینهٔ CLI اولویت دارد |
-| `HOST` | startServer | پیش‌فرض 127.0.0.1؛ گزینهٔ CLI اولویت دارد |
+| `DEEPSEEK_TOKEN` | App, API client, server | DeepSeek web-session token; required for sending |
+| `RC_TOKEN` | Server `getToken` | Fallback upstream token; not an independent client password |
+| `DEEPSEEK_SESSION_ID` | API client at import | Initial session ID; reset by new interactive initialization |
+| `DEEPSEEK_MESSAGE_ID` | API client at import | Initial numeric parent-message ID |
+| `RP_CLI_LOG_CHAT` | LogChat | Enabled with `1`, `true`, or `yes`; off by default |
+| `RP_CLI_MODEL` | TokenConfig | Stored `default` or `expert`; other values use default |
+| `PORT` | startServer | Default 3000; CLI option takes precedence |
+| `HOST` | startServer | Default 127.0.0.1; CLI option takes precedence |
 
-`DEEPSEEK_API_KEY` در این پیاده‌سازی جایگزین `DEEPSEEK_TOKEN` نیست. نام انتخابی مدل HTTP نیز با preference مدل تعاملی یکسان نیست.
+`DEEPSEEK_API_KEY` does not replace `DEEPSEEK_TOKEN` in this implementation. The HTTP model name also differs from the interactive model preference.
 
-## فایل تنظیمات
+## Configuration File
 
-مالک: [TokenConfig.ts](../../source/core/TokenConfig.ts)، نمادهای `tokenConfigDirectory` و `tokenConfigPath`.
+Owner: [TokenConfig.ts](../../source/core/TokenConfig.ts), symbols `tokenConfigDirectory` and `tokenConfigPath`.
 
-مسیر ثابت نسبت به home، روی همهٔ پلتفرم‌ها:
+Fixed path relative to home on every platform:
 
 ```text
 ~/.config/rp-cli/.env
 ```
 
-متغیر `XDG_CONFIG_HOME` برای جابه‌جایی این مسیر استفاده نشده است. `saveDeepSeekToken`، `clearDeepSeekToken`، `saveChatLoggingPreference` و `saveModelPreference` مقادیر را در Map بازنویسی می‌کنند؛ نظرها و قالب‌بندی قبلی فایل حفظ نمی‌شوند. حذف آخرین entry باعث حذف فایل می‌شود.
+`XDG_CONFIG_HOME` is not used to relocate this path. `saveDeepSeekToken`, `clearDeepSeekToken`, `saveChatLoggingPreference`, and `saveModelPreference` rewrite values in a Map; existing comments and formatting are not preserved. Removing the last entry deletes the file.
 
-`getModelPreference` فایل را مستقیم می‌خواند؛ set کردن صرف `RP_CLI_MODEL` در محیط الزاماً انتخاب مدل رابط را تغییر نمی‌دهد. `expert` تنها مقدار غیراستاندارد پذیرفته‌شده در این preference است.
+`getModelPreference` reads the file directly; merely setting `RP_CLI_MODEL` in the environment does not necessarily change the interface's model selection. `expert` is the only accepted non-default value for this preference.
 
-دایرکتوری جدید با mode برابر `0700` و فایل با `0600` درخواست می‌شود. این درخواست برای ایجاد، به معنی تعمیر permission فایل یا پوشهٔ ازقبل‌موجود یا رمزنگاری داده نیست.
+New directories request mode `0700`, and files request `0600`. These creation requests do not repair permissions on existing files or directories and do not encrypt data.
 
-## سه مخزن مستقل
+## Three Independent Stores
 
-| مخزن | مکان/مالک | محتوای نگهداری‌شده | وابستگی به logging |
+| Store | Location/Owner | Retained Content | Depends on Logging |
 | --- | --- | --- | --- |
-| لاگ تشخیصی | زیر `logs/<session-id>/` در config؛ LogChat | prompt، event و نتیجهٔ خام | بله |
-| رونوشت تعاملی | `sessions/<session-id>.json` در config؛ SessionTranscript | user، thinking، assistant و console؛ بدون logo | خیر |
-| نشست سرویس | حساب DeepSeek؛ core-lib | تاریخچه و وضعیت remote | خیر |
+| Diagnostic log | Under `logs/<session-id>/` in config; LogChat | Prompts, events, and raw results | Yes |
+| Interactive transcript | `sessions/<session-id>.json` in config; SessionTranscript | User, thinking, assistant, and console; no logo | No |
+| Service session | DeepSeek account; core-lib | Remote history and state | No |
 
-شواهد: [LogChat.ts](../../source/core/LogChat.ts)، [SessionTranscript.ts](../../source/core/SessionTranscript.ts) و [useChatSession.ts](../../source/components/chat/useChatSession.ts).
+Evidence: [LogChat.ts](../../source/core/LogChat.ts), [SessionTranscript.ts](../../source/core/SessionTranscript.ts), and [useChatSession.ts](../../source/components/chat/useChatSession.ts).
 
-در خاموشی `/logging`، ذخیرهٔ transcript تعاملی لزوماً متوقف نمی‌شود. لاگ خام و transcript برای دو هدف مختلف‌اند و سیاست retention خودکار یکسانی ندارند. حذف محلی، حذف remote را اثبات نمی‌کند.
+Turning off `/logging` does not necessarily stop interactive transcript storage. Raw logs and transcripts serve different purposes and do not share an automatic retention policy. Local deletion does not prove remote deletion.
 
-`SessionTranscript` شناسه را به حروف و ارقام، `_` و `-` محدود می‌کند. متن ذخیره‌شده ترتیب منطقی اصلی را دارد؛ تبدیل RTL مربوط به نمایش است. خطاهای logging عمدتاً بدون متوقف‌کردن گفتگو نادیده گرفته می‌شوند؛ نبود فایل لاگ همیشه نشانهٔ نبود درخواست نیست.
+`SessionTranscript` restricts IDs to letters, digits, `_`, and `-`. Stored text retains its original logical order; RTL transformation concerns display. Logging errors are mostly ignored without stopping chat; a missing log file does not always mean no request was made.
 
-## چرخهٔ عمر و اولویت توکن
+## Lifecycle and Token Precedence
 
-در سرور: `DEEPSEEK_TOKEN` سپس `RC_TOKEN` سپس Bearer درخواست انتخاب می‌شود. اگر توکن محیط موجود باشد، Bearer کلاینت برای احراز هویت مستقل مقایسه نمی‌شود. جزئیات در [http.ts](../../source/server/http.ts).
+On the server, selection order is `DEEPSEEK_TOKEN`, then `RC_TOKEN`, then the request's Bearer token. When an environment token exists, the client's Bearer token is not compared for independent authentication. Details are in [http.ts](../../source/server/http.ts).
 
-نشست تعاملی استفاده‌نشده در خروج به‌صورت best effort برای حذف remote فرستاده می‌شود؛ نشست استفاده‌شده برای resume حفظ می‌شود. `/clear` transcript قدیمی را حذف می‌کند و نشست گفتگو را reset می‌کند، نه همهٔ مخازن و نه todoها را. تعویض مدل پس از گفتگو نشست تازه‌ای با خلاصه می‌سازد.
+An unused interactive session is submitted for best-effort remote deletion on exit; a used session is retained for resume. `/clear` deletes the old transcript and resets the chat session, not every store or the todos. Switching models after a conversation creates a new session with a summary.
 
-`deleteSession` صرفاً دریافت پاسخ fetch را تضمین می‌کند؛ موفقیت HTTP را در wrapper assert نمی‌کند. از دید نگهداری داده نباید «await تمام شد» را معادل «اطلاعات از سرویس حذف شد» دانست.
+`deleteSession` only guarantees receipt of a fetch response; the wrapper does not assert HTTP success. For data-retention purposes, completion of `await` must not be equated with deletion of information from the service.
 
-## مدیریت امن
+## Safe Handling
 
-توکن واقعی، پوشهٔ config و رونوشت‌ها را در repository یا گزارش اشکال منتشر نکنید. مسیرهای workspace ابزار، فایل home تنظیمات خود برنامه را از دسترس shell جدا نمی‌کنند. برای مرزهای دقیق به [امنیت و حریم خصوصی](../explanation/security-and-privacy.md) و برای رفع مشکل به [عیب‌یابی](../guides/troubleshooting.md) رجوع کنید.
+Do not publish real tokens, the config directory, or transcripts in the repository or bug reports. Tool workspace paths do not isolate the application's home configuration file from shell access. See [Security and Privacy](../explanation/security-and-privacy.md) for exact boundaries and [Troubleshooting](../guides/troubleshooting.md) for diagnosis.

@@ -1,52 +1,52 @@
-# افزودن ابزار محلی یا فرمان اسلش
+# Adding a Local Tool or Slash Command
 
-این راهنما نقاط تغییر را معرفی می‌کند؛ قرارداد کامل را از مراجع پیوندشده بخوانید.
-ابتدا مشخص کنید نیاز، ابزار قابل فراخوانی مدل است یا فرمان مستقیم رابط کاربر.
+This guide identifies the change points; read the linked references for the complete contract.
+First decide whether you need a model-callable tool or a direct user-interface command.
 
-## ابزار محلی
+## Local Tools
 
-قرارداد `Tool` شامل `name`، `description`، `execute` و `requiresConfirmation` اختیاری است.
-پیاده‌سازی را در مرز [source/tools/types.ts](../../source/tools/types.ts) نگه دارید.
-ابزار را به `tools` در [source/tools/registry.ts](../../source/tools/registry.ts) اضافه کنید.
-`getToolDescriptions` از همین registry توضیح پرامپت می‌سازد.
-این قرارداد schema ماشینی پارامترها ندارد؛ توضیح و اعتبارسنجی زمان اجرا جدا هستند.
-نوع، مقدار پیش‌فرض، بازه و رفتار خطا را در هر دو هماهنگ نگه دارید.
-از الگوی اعتبارسنجی [source/tools/arguments.ts](../../source/tools/arguments.ts) استفاده کنید.
+The `Tool` contract includes `name`, `description`, `execute`, and optional `requiresConfirmation`.
+Keep the implementation within the boundary defined by [source/tools/types.ts](../../source/tools/types.ts).
+Add the tool to `tools` in [source/tools/registry.ts](../../source/tools/registry.ts).
+`getToolDescriptions` generates prompt descriptions from this registry.
+This contract has no machine-readable parameter schema; descriptions and runtime validation are separate.
+Keep types, defaults, ranges, and error behavior consistent between both.
+Use the validation pattern in [source/tools/arguments.ts](../../source/tools/arguments.ts).
 
-برای عملیات فایل، الگوی مسیر [source/tools/paths.ts](../../source/tools/paths.ts) را بررسی کنید.
-`safePath` و `safeTargetPath` هم‌ارز نیستند؛ دومی والد هدف را resolve می‌کند.
-برای هدف موجود symlink، صرف بررسی والد را تضمین confinement ندانید.
-برای ابزار تغییردهنده، metadata تأیید و پیش‌نمایش مناسب لازم است.
-پیش‌نمایش‌ها در [source/tools/describe.ts](../../source/tools/describe.ts) ساخته می‌شوند.
-کنترل mode و تأیید در `executeToolCalls` است، نه خود `executeTool`.
-فراخوانی مستقیم `executeTool` این کنترل‌ها را دور می‌زند؛ آن را مسیر امن عمومی معرفی نکنید.
+For file operations, inspect the path pattern in [source/tools/paths.ts](../../source/tools/paths.ts).
+`safePath` and `safeTargetPath` are not equivalent; the latter resolves the target's parent.
+For an existing symlink target, checking only the parent does not guarantee confinement.
+A mutating tool needs confirmation metadata and an appropriate preview.
+Previews are built in [source/tools/describe.ts](../../source/tools/describe.ts).
+Mode and confirmation controls live in `executeToolCalls`, not in `executeTool` itself.
+Calling `executeTool` directly bypasses these controls; do not present it as a generally safe execution path.
 
-نام و پارامترها را با parser فعلی تطبیق دهید.
-parser برای invoke حداقل یک parameter می‌خواهد، حتی اگر توضیح ابزار آرگومان نخواهد.
-برای قالب دقیق، [پروتکل ابزار](../reference/tool-protocol.md) را بخوانید.
-ابزارهای کلاینت HTTP از این registry جدا هستند و سرور آن‌ها را محلی اجرا نمی‌کند.
+Align names and parameters with the current parser.
+The parser requires at least one parameter for an invoke, even if the tool description requires no arguments.
+For the exact format, read the [tool protocol](../reference/tool-protocol.md).
+HTTP client tools are separate from this registry, and the server does not execute them locally.
 
-## فرمان اسلش
+## Slash Commands
 
-مالک تعریف [source/commands/index.ts](../../source/commands/index.ts) است.
-`SlashCommand` نام، alias اختیاری، توضیح و تابع `execute` می‌گیرد.
-وابستگی رابط را از `SlashCommandContext` عبور دهید؛ در صورت نیاز context را در مصرف‌کننده نیز وصل کنید.
-فرمان را به `slashCommands` اضافه کنید تا help و resolver از همان تعریف استفاده کنند.
-`resolveSlashCommand` کل متن trim‌شده و lowercase‌شده را تطبیق می‌دهد، نه یک parser آرگومان عمومی.
-برای فرمان پارامتردار، این محدودیت را صریح طراحی و آزمایش کنید.
-تغییر حالت‌های موجود را با فرمان ساختگی مستند نکنید؛ مسیر فعلی TAB است.
+Definitions are owned by [source/commands/index.ts](../../source/commands/index.ts).
+`SlashCommand` takes a name, optional alias, description, and `execute` function.
+Pass UI dependencies through `SlashCommandContext`; wire the context into the consumer as needed.
+Add the command to `slashCommands` so help and the resolver use the same definition.
+`resolveSlashCommand` matches the entire trimmed, lowercased text; it is not a general argument parser.
+For parameterized commands, explicitly account for and test this limitation.
+Do not document existing mode changes using invented commands; the current mechanism is TAB.
 
-## بررسی پیش از تحویل
+## Pre-Delivery Checks
 
-برای آرگومان نامعتبر، خطا و مسیر موفق آزمون محدود بنویسید.
-برای ابزار تغییردهنده، رفتار `plan`، `normal`، `yolo` و رد تأیید را نیز بررسی کنید.
-پس از تغییر TypeScript، build یا typecheck و سپس آزمون مرتبط را اجرا کنید.
-توضیح registry، مرجع و نمونه مصرف‌کننده را همزمان به‌روز کنید.
-دستورهای آماده در [آزمون](testing.md) و جدول رفتار در [ابزارهای محلی](../reference/local-tools.md) است.
+Write focused tests for invalid arguments, errors, and the successful path.
+For mutating tools, also check `plan`, `normal`, and `yolo` behavior and rejection of confirmation.
+After changing TypeScript, run a build or typecheck, followed by the relevant test.
+Update the registry description, reference, and consumer example together.
+Ready-to-run commands are in [testing](testing.md), and the behavior table is in [local tools](../reference/local-tools.md).
 
-## شواهد و اعتبار
+## Evidence and Validity
 
-مالک اجرا: [source/tools/execute.ts](../../source/tools/execute.ts)، `executeToolCalls` و `toolIsMutating`.
-مالک parsing: [source/tools/parse.ts](../../source/tools/parse.ts)، `parseToolCalls`.
-نقشه توسعه در [نمادها](../reference/exported-symbols.md) و [نمایه](../README.md) آمده است.
-نسخه مبنا: **0.10.1**؛ بازبینی: **2026-10-28**؛ تحلیل ایستا، بدون آزمون اجرایی DeepSeek.
+Execution owner: [source/tools/execute.ts](../../source/tools/execute.ts), `executeToolCalls` and `toolIsMutating`.
+Parsing owner: [source/tools/parse.ts](../../source/tools/parse.ts), `parseToolCalls`.
+The development map is in [exported symbols](../reference/exported-symbols.md) and the [index](../README.md).
+Baseline version: **0.10.1**; review: **2026-10-28**; static analysis, without live DeepSeek testing.

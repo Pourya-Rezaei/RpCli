@@ -1,51 +1,51 @@
-# آماده‌سازی محیط توسعه
+# Setting Up the Development Environment
 
-این راهنما برای توسعه‌دهنده‌ای است که نسخه checkout‌شده مخزن را می‌سازد.
-فرمان‌های زیر برای اجرای آینده در محیط آماده‌اند؛ در این بازبینی اجرا نشده‌اند.
+This guide is for developers building a checked-out copy of the repository.
+The commands below are for later use in a prepared environment; they were not run during this review.
 
-## پیش‌نیاز و نصب
+## Prerequisites and Installation
 
-Node.js 22+ را برای وابستگی‌های قفل‌شده انتخاب کنید؛ حداقل اعلام‌شده بسته ۱۸ است.
-وجود Node.js 24 در محیط بازبینی، گواه آزموده‌شدن پروژه روی آن نیست.
-نسخه pnpm در manifest به صورت `packageManager` تثبیت نشده است.
-وجود Corepack نیز به معنی وجود pnpm آماده اجرا نیست.
+Choose Node.js 22+ for the locked dependencies; the package declares a minimum of 18.
+The presence of Node.js 24 in the review environment does not demonstrate that the project was tested on it.
+The manifest does not pin a pnpm version through `packageManager`.
+Having Corepack installed does not mean pnpm is ready to run.
 
 ```sh
 pnpm install
 pnpm build
 ```
 
-نصب وابستگی نیازمند اجازه و شرایط شبکه محیط شماست.
-در محیط این مستندسازی pnpm و وابستگی‌ها غایب بودند؛ نصب یا دانلود انجام نشد.
-خروجی build در `dist` است؛ فایل‌های آن را دستی ویرایش نکنید.
+Installing dependencies requires the appropriate permissions and network conditions in your environment.
+pnpm and dependencies were absent from the documentation environment; no installation or download was performed.
+Build output goes to `dist`; do not edit its files manually.
 
-## ساخت و watch
+## Build and Watch
 
-`pnpm build` ابتدا `tsc` و سپس کپی پرامپت‌ها را اجرا می‌کند.
-مقصد واقعی Markdownهای پرامپت `dist/source/prompts` است.
-اسکریپت فقط فایل‌های `.md` سطح نخست پوشه پرامپت را کپی می‌کند.
-این فرایند پاک‌سازی کامل خروجی قدیمی نیست.
+`pnpm build` runs `tsc` first, then copies the prompts.
+The actual destination for prompt Markdown files is `dist/source/prompts`.
+The script copies only top-level `.md` files from the prompt directory.
+This process does not completely clean old output.
 
 ```sh
 pnpm dev
 ```
 
-حالت dev یک‌بار پرامپت‌ها را کپی می‌کند و سپس `tsc --watch` اجرا می‌شود.
-ویرایش بعدی Markdown پرامپت، خودکار دوباره کپی نمی‌شود؛ build یا کپی را دوباره انجام دهید.
-پس از ساخت، برای اجرای محلی:
+Dev mode copies prompts once and then runs `tsc --watch`.
+Subsequent edits to prompt Markdown are not automatically copied again; rerun the build or copy step.
+After building, run locally with:
 
 ```sh
 node dist/source/cli.js
 ```
 
-این اجرا می‌تواند توکن بخواهد و به DeepSeek متصل شود؛ آن را بررسی آفلاین ندانید.
-`DEEPSEEK_API_KEY` قرارداد این CLI نیست؛ از توکن وب طبق [نصب](../tutorials/installation.md) استفاده می‌شود.
+This invocation may request a token and connect to DeepSeek; do not treat it as an offline check.
+`DEEPSEEK_API_KEY` is not part of this CLI's contract; it uses a web token as described in [installation](../tutorials/installation.md).
 
-## کنترل کیفیت و شواهد
+## Quality Checks and Evidence
 
-`pnpm test` ترتیب Prettier، XO و AVA را اجرا می‌کند؛ [راهنمای آزمون](testing.md) را ببینید.
-`pnpm format` کل مخزن را قالب‌بندی می‌کند؛ برای تغییر محدود بی‌دلیل اجرا نکنید.
-مالک مسیر CLI: [source/cli.tsx](../../source/cli.tsx)، `cli`.
-مالک بارگذاری پرامپت: [source/prompts/index.ts](../../source/prompts/index.ts)، `SystemPrompt` و `ServerSystemPrompt`.
-برای نقشه نمادها [نمادهای صادرشده](../reference/exported-symbols.md) و [نمایه](../README.md) را ببینید.
-نسخه مبنا: **0.10.1**؛ بازبینی: **2026-10-28**؛ تحلیل ایستا، بدون build یا آزمون اجرایی DeepSeek.
+`pnpm test` runs Prettier, XO, and AVA in sequence; see the [testing guide](testing.md).
+`pnpm format` formats the entire repository; do not run it unnecessarily for a narrow change.
+CLI routing owner: [source/cli.tsx](../../source/cli.tsx), `cli`.
+Prompt loading owner: [source/prompts/index.ts](../../source/prompts/index.ts), `SystemPrompt` and `ServerSystemPrompt`.
+For the symbol map, see [exported symbols](../reference/exported-symbols.md) and the [index](../README.md).
+Baseline version: **0.10.1**; review: **2026-10-28**; static analysis, without a build or live DeepSeek testing.

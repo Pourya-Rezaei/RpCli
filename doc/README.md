@@ -1,85 +1,86 @@
-# مستندات تحلیلی RpCli
+# RpCli Documentation
 
-این مجموعه برای فهم، استفاده و توسعهٔ RpCli تهیه شده است: یک CLI گفتگو با DeepSeek، رابط ترمینال، عامل ابزارهای محلی و adapter HTTP. هدف، توضیح رفتار واقعی و قابل پیگیری کد است، نه تکرار معرفی محصول.
+This collection explains how to understand, use, and extend RpCli: a DeepSeek chat CLI, terminal interface, local-tool agent, and HTTP adapter. It documents traceable implementation behavior rather than repeating a product introduction.
 
-**نسخهٔ مبنا:** `0.10.1` از [package.json](../package.json)؛ **تاریخ تحلیل:** `2026-10-28`.
+**Baseline version:** `0.10.1`, from [package.json](../package.json). **Analysis date:** `2026-10-28`.
 
-## اعتبار اطلاعات
+## Evidence and Scope
 
-تحلیل کد از آزمون اجرایی جداست. توضیح رفتارها بر پایهٔ فایل‌ها و نمادهای لینک‌شده است؛ مثال‌های دارای ارتباط DeepSeek یا تغییر فایل در این کار اجرا نشده‌اند. نتیجهٔ کنترل اسناد و وضعیت ابزارهای build در [گزارش بررسی](development/verification.md) ثبت می‌شود. محدودیت‌ها و اختلاف مستندات قدیمی در [فهرست موارد شناخته‌شده](reference/known-limitations.md) آمده‌اند.
+Source analysis is distinct from runtime testing. Behavioral descriptions point to linked files and symbols; examples requiring DeepSeek access or file mutations were not executed during authoring. See the [verification report](development/verification.md) for checks and unavailable build prerequisites, and [known limitations](reference/known-limitations.md) for constraints and discrepancies in older documentation.
 
-تغییرات این مجموعه محدود به `doc/` است. کد برنامه، [README اصلی](../README.md)، [AGENTS.md](../AGENTS.md)، تنظیمات شخصی، توکن و خروجی build اصلاح نشده‌اند. در اختلاف میان معرفی قدیمی و رفتار پیاده‌سازی، برای فهم نسخهٔ مبنا به شاهد کد توجه کنید.
+Documentation changes are confined to `doc/`. Application code, the [root README](../README.md), [AGENTS.md](../AGENTS.md), personal settings, tokens, and build output were not modified. Consult source evidence where older descriptions conflict with the baseline implementation.
 
-## مسیر مطالعه
+## Reading Paths
 
-| نیاز خواننده | مسیر پیشنهادی |
+| Reader goal | Suggested sequence |
 | --- | --- |
-| اولین استفاده | نصب ← اولین نشست ← گردش کار تعاملی |
-| فهم داخلی برنامه | معماری ← جریان اجرا ← انتقال DeepSeek ← نقشهٔ پوشش |
-| ساخت کلاینت HTTP | راهنمای سرور ← مرجع API ← محدودیت‌ها و امنیت |
-| تغییر کد | محیط توسعه ← رابط‌های مهم ← توسعهٔ ابزار/فرمان ← تست و نگهداری |
-| ارزیابی نگهداری داده | تنظیمات و ذخیره‌سازی ← امنیت ← ادامهٔ نشست |
+| First use | Installation, first session, interactive workflows |
+| Understand internals | Architecture, execution flows, DeepSeek transport, source map |
+| Build an HTTP client | Server guide, API reference, limitations and security |
+| Modify the application | Development setup, interfaces, extension guide, testing and maintenance |
+| Assess retained data | Configuration and storage, security, session resume |
 
-## آموزش‌های شروع
+## Tutorials
 
-- [نصب و پیش‌نیازها](tutorials/installation.md)
-- [اولین نشست](tutorials/first-session.md)
+- [Installation and prerequisites](tutorials/installation.md)
+- [First session](tutorials/first-session.md)
 
-## راهنماهای انجام کار
+## Task Guides
 
-- [گردش کار تعاملی](guides/interactive-workflows.md)
-- [ادامهٔ نشست و تعویض مدل](guides/resume-and-model-switching.md)
-- [تولید پیام کامیت](guides/commit-messages.md)
-- [استفاده از سرور HTTP](guides/http-server.md)
-- [عیب‌یابی](guides/troubleshooting.md)
+- [Interactive workflows](guides/interactive-workflows.md)
+- [Session resume and model switching](guides/resume-and-model-switching.md)
+- [Commit message generation](guides/commit-messages.md)
+- [Local HTTP server](guides/http-server.md)
+- [Troubleshooting](guides/troubleshooting.md)
 
-## مرجع‌های فنی
+## Technical References
 
-- [خط فرمان و تقدم حالت‌ها](reference/cli.md)
-- [تنظیمات و مخازن داده](reference/configuration-and-storage.md)
-- [فرمان‌ها و صفحه‌کلید](reference/keyboard-and-slash-commands.md)
-- [ابزارهای محلی و سیاست اجرا](reference/local-tools.md)
-- [پروتکل فراخوانی ابزار](reference/tool-protocol.md)
-- [قرارداد HTTP و ماتریس سازگاری](reference/http-api.md)
-- [پرامپت‌ها و زمینهٔ پروژه](reference/prompts.md)
-- [رابط‌ها و نمادهای مهم](reference/exported-symbols.md)
-- [محدودیت‌ها و اختلاف‌های شناخته‌شده](reference/known-limitations.md)
-- [نقشهٔ پوشش فایل‌های مخزن](reference/source-map.md)
+- [CLI syntax and routing precedence](reference/cli.md)
+- [Configuration and data storage](reference/configuration-and-storage.md)
+- [Keyboard controls and slash commands](reference/keyboard-and-slash-commands.md)
+- [Local tools and execution policies](reference/local-tools.md)
+- [Tool-call protocols](reference/tool-protocol.md)
+- [HTTP contract and compatibility matrix](reference/http-api.md)
+- [Prompts and project context](reference/prompts.md)
+- [Important interfaces and exported symbols](reference/exported-symbols.md)
+- [Known limitations and documentation discrepancies](reference/known-limitations.md)
+- [Repository source coverage map](reference/source-map.md)
 
-## توضیح معماری
+## Architecture Explanations
 
-- [لایه‌ها و مسئولیت ماژول‌ها](explanation/architecture.md)
-- [جریان‌های اجرای برنامه](explanation/execution-flows.md)
-- [ارتباط، PoW و SSE در DeepSeek](explanation/deepseek-transport.md)
-- [مرزهای اعتماد و حریم خصوصی](explanation/security-and-privacy.md)
-- [رابط ترمینال و نمایش فارسی](explanation/terminal-and-persian-rendering.md)
+- [Layers and module ownership](explanation/architecture.md)
+- [Execution flows](explanation/execution-flows.md)
+- [DeepSeek transport, PoW, and SSE](explanation/deepseek-transport.md)
+- [Trust boundaries, security, and privacy](explanation/security-and-privacy.md)
+- [Terminal and Persian text rendering](explanation/terminal-and-persian-rendering.md)
 
-## توسعه و کنترل کیفیت
+## Development and Quality
 
-- [راه‌اندازی و scriptها](development/setup-and-scripts.md)
-- [تست‌های موجود و شکاف پوشش](development/testing.md)
-- [افزودن ابزار و فرمان](development/extending-tools-and-commands.md)
-- [نگهداری و کنترل تغییر مستندات](development/documentation-maintenance.md)
-- [گزارش اعتبارسنجی این مجموعه](development/verification.md)
+- [Proposed web interface and architectural decisions](web-development/README.md). This is a future design, not an implemented feature.
+- [Development setup and scripts](development/setup-and-scripts.md)
+- [Existing tests and coverage gaps](development/testing.md)
+- [Extending tools and commands](development/extending-tools-and-commands.md)
+- [Documentation maintenance](development/documentation-maintenance.md)
+- [Documentation verification report](development/verification.md)
 
-## واژه‌نامهٔ مشترک
+## Shared Terminology
 
-| واژه | معنا در این پروژه |
+| Term | Meaning in this project |
 | --- | --- |
-| workspace / cwd | پوشه‌ای که فرایند از آن شروع می‌شود؛ مبنای ابزار فایل و AGENTS |
-| نشست remote | گفتگو در حساب DeepSeek، با id و parent message |
-| transcript / رونوشت | پیام‌های محلی رابط برای بازنمایی resume؛ مستقل از logging |
-| log / لاگ | ثبت تشخیصی اختیاری prompt، event و نتیجه |
-| generation / نسل پاسخ | یک نوبت تولید با state توقف مشترک |
-| tool round / دور ابزار | دریافت call، اجرای آن و بازگرداندن نتیجه به مدل |
-| continuation / ادامهٔ stream | ادامهٔ پاسخ ناقص upstream؛ متفاوت با دور ابزار و /continue |
-| normal / yolo / plan | سیاست اجرای ابزار در رابط؛ نه مدل DeepSeek |
-| default / expert | انتخاب مدل داخلی رابط؛ متفاوت با label مدل HTTP |
-| client function | ابزار معرفی‌شده در HTTP که کلاینت اجرا می‌کند، نه registry محلی |
-| prompt | دستور متنی به مدل؛ به معنی enforceشدن سیاست نیست |
+| workspace / cwd | Process launch directory; the basis for file tools and AGENTS context |
+| Remote session | A conversation in the DeepSeek account with a session ID and parent message |
+| Transcript | Local interactive messages used to restore the resume display; independent of logging |
+| Log | Optional diagnostic records of prompts, events, and results |
+| Generation | A response-production turn with shared cancellation state |
+| Tool round | Receiving calls, executing tools, and returning results to the model |
+| Continuation | Extending an incomplete upstream response; distinct from tool rounds and /continue |
+| normal / yolo / plan | Interface tool-execution policies, not DeepSeek model names |
+| default / expert | Interactive model selection, distinct from HTTP model labels |
+| Client function | An HTTP-declared function executed by the client, not the local registry |
+| Prompt | Textual instructions to the model, not proof of runtime enforcement |
 
-## قواعد خوانایی و نگهداری
+## Readability and Maintenance
 
-هر صفحه یک هدف دارد. جدول‌های قرارداد در reference نگهداری می‌شوند؛ آموزش و راهنما از آن‌ها استفاده می‌کنند. نام فایل‌ها و شناسه‌های کد ثابت و انگلیسی‌اند، اما توضیح‌ها فارسی‌اند. نمونه‌های چندخطی در code fence آمده‌اند تا ترتیب متن فارسی و فرمان‌ها کمتر مخدوش شود.
+Each page has one purpose. Reference pages own contract tables; tutorials and guides link to them. Documentation prose, examples, and paths use English. Multiline examples use code fences. Discussion of Persian rendering describes an application capability without requiring Persian text in the documentation.
 
-«تأیید از روی کد» با «تست‌شده» و «ریسک ایستا» با «آسیب‌پذیری اثبات‌شده» یکی نیست. تغییرات بعدی باید تاریخ، شاهد، قرارداد و محدودیت مرتبط را با هم بازبینی کنند؛ [دستور نگهداری](development/documentation-maintenance.md) و [نقشهٔ پوشش](reference/source-map.md) ابزار کنترل این فرایند هستند.
+Source-confirmed behavior is not the same as tested behavior, and a static risk is not an exploit-confirmed vulnerability. Future changes must review the date, evidence, affected contract, and limitations together. Use the [maintenance guide](development/documentation-maintenance.md) and [source map](reference/source-map.md) to track that work.

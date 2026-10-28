@@ -1,134 +1,134 @@
-# نقشهٔ پوشش مخزن و شواهد
+# Repository Coverage and Evidence Map
 
-نسخه `0.10.1`؛ تاریخ `2026-10-28`. این فهرست، موجودی ۸۵ فایل تحت Git در شروع مستندسازی را به مسئولیت و محل توضیح مرتبط می‌کند. فایل‌های جدید `doc/` در این عدد نیستند. «پوشش» در اینجا پوشش مستندات است، نه test coverage.
+Version `0.10.1`; dated `2026-10-28`. This list maps the inventory of 85 Git-tracked files at the start of documentation to their responsibilities and explanatory pages. New `doc/` files are not included in this number. "Coverage" here means documentation coverage, not test coverage.
 
-برای هر تغییر، فایل مالک را در جدول پیدا کنید و صفحهٔ مرتبط را بازبینی کنید. ارجاع فایل برای اثبات اجرای موفق آن کافی نیست؛ وضعیت اجرا در [گزارش بررسی](../development/verification.md) ثبت شده است.
+For each change, find the owning file in the table and review the related page. A file reference is not sufficient proof of successful execution; execution status is recorded in the [Verification Report](../development/verification.md).
 
-## پیکربندی، بسته‌بندی و راهنماهای ریشه
+## Configuration, Packaging, and Root Guides
 
-| فایل | مسئولیت | مرجع توضیح |
+| File | Responsibility | Explanatory Reference |
 | --- | --- | --- |
-| [.editorconfig](../../.editorconfig) | whitespace، LF و encoding | [محیط توسعه](../development/setup-and-scripts.md) |
-| [.gitattributes](../../.gitattributes) | قواعد Git برای نوع/پایان خط فایل‌ها | [محیط توسعه](../development/setup-and-scripts.md) |
-| [.gitignore](../../.gitignore) | موارد خارج از tracking | [کشف و امنیت](../explanation/security-and-privacy.md) |
-| [.prettierignore](../../.prettierignore) | استثناهای formatter، از جمله Markdown | [اعتبارسنجی](../development/verification.md) |
-| [AGENTS.md](../../AGENTS.md) | راهنمای عامل repository و زمینهٔ prompt | [اختلاف‌ها](known-limitations.md) |
-| [README.md](../../README.md) | معرفی فعلی و دستورهای کاربر | [اختلاف‌ها](known-limitations.md) |
-| [package.json](../../package.json) | نسخه، dependency، bin، scripts و config ابزارها | [محیط توسعه](../development/setup-and-scripts.md) |
-| [pnpm-lock.yaml](../../pnpm-lock.yaml) | نسخه‌های resolveشده و engine/peer dependency | [محدودیت محیط](known-limitations.md) |
-| [pnpm-workspace.yaml](../../pnpm-workspace.yaml) | تنظیم workspace و سیاست release age | [محیط توسعه](../development/setup-and-scripts.md) |
-| [tsconfig.json](../../tsconfig.json) | ورودی source/core-lib و خروجی dist | [محیط توسعه](../development/setup-and-scripts.md) |
-| [copy-prompts.mjs](../../scripts/copy-prompts.mjs) | کپی assetهای prompt پس از compile | [پرامپت‌ها](prompts.md) |
+| [.editorconfig](../../.editorconfig) | Whitespace, LF, and encoding | [Development Environment](../development/setup-and-scripts.md) |
+| [.gitattributes](../../.gitattributes) | Git rules for file types/line endings | [Development Environment](../development/setup-and-scripts.md) |
+| [.gitignore](../../.gitignore) | Items excluded from tracking | [Discovery and Security](../explanation/security-and-privacy.md) |
+| [.prettierignore](../../.prettierignore) | Formatter exceptions, including Markdown | [Verification](../development/verification.md) |
+| [AGENTS.md](../../AGENTS.md) | Repository agent guide and prompt context | [Discrepancies](known-limitations.md) |
+| [README.md](../../README.md) | Current introduction and user commands | [Discrepancies](known-limitations.md) |
+| [package.json](../../package.json) | Version, dependencies, bin, scripts, and tool configuration | [Development Environment](../development/setup-and-scripts.md) |
+| [pnpm-lock.yaml](../../pnpm-lock.yaml) | Resolved versions and engine/peer dependencies | [Environment Limitations](known-limitations.md) |
+| [pnpm-workspace.yaml](../../pnpm-workspace.yaml) | Workspace configuration and release-age policy | [Development Environment](../development/setup-and-scripts.md) |
+| [tsconfig.json](../../tsconfig.json) | source/core-lib input and dist output | [Development Environment](../development/setup-and-scripts.md) |
+| [copy-prompts.mjs](../../scripts/copy-prompts.mjs) | Copy prompt assets after compilation | [Prompts](prompts.md) |
 
-## ورودی و orchestration
+## Entry Points and Orchestration
 
-| فایل | مسئولیت | مرجع توضیح |
+| File | Responsibility | Explanatory Reference |
 | --- | --- | --- |
-| [cli.tsx](../../source/cli.tsx) | parse، انتخاب serve/resume/commit/prompt/interactive | [CLI](cli.md) |
-| [app.tsx](../../source/app.tsx) | gate توکن، نمای مناسب و cleanup خروج | [جریان اجرا](../explanation/execution-flows.md) |
-| [agent.ts](../../source/actions/agent.ts) | حلقهٔ ابزار و پاسخ | [پروتکل](tool-protocol.md) |
-| [commitMessage.ts](../../source/actions/commitMessage.ts) | diff و تولید پیام commit | [راهنمای کامیت](../guides/commit-messages.md) |
-| [commands/index.ts](../../source/commands/index.ts) | registry فرمان‌های slash | [فرمان‌ها](keyboard-and-slash-commands.md) |
+| [cli.tsx](../../source/cli.tsx) | Parsing and serve/resume/commit/prompt/interactive selection | [CLI](cli.md) |
+| [app.tsx](../../source/app.tsx) | Token gate, appropriate view, and exit cleanup | [Execution Flows](../explanation/execution-flows.md) |
+| [agent.ts](../../source/actions/agent.ts) | Tool and response loop | [Protocol](tool-protocol.md) |
+| [commitMessage.ts](../../source/actions/commitMessage.ts) | Diff and commit-message generation | [Commit Guide](../guides/commit-messages.md) |
+| [commands/index.ts](../../source/commands/index.ts) | Slash-command registry | [Commands](keyboard-and-slash-commands.md) |
 
-## مؤلفه‌های رابط
+## Interface Components
 
-| فایل | مسئولیت | مرجع توضیح |
+| File | Responsibility | Explanatory Reference |
 | --- | --- | --- |
-| [CommitView.tsx](../../source/components/CommitView.tsx) | تأیید و اجرای git commit | [راهنمای کامیت](../guides/commit-messages.md) |
-| [FzfFilePicker.tsx](../../source/components/FzfFilePicker.tsx) | fuzzy picker داخلی فایل | [رابط ترمینال](../explanation/terminal-and-persian-rendering.md) |
-| [InteractiveChatView.tsx](../../source/components/InteractiveChatView.tsx) | کنترل اصلی گفتگو و ورودی | [جریان اجرا](../explanation/execution-flows.md) |
-| [MarkdownText.tsx](../../source/components/MarkdownText.tsx) | تفسیر زیرمجموعهٔ Markdown برای Ink | [نمایش فارسی](../explanation/terminal-and-persian-rendering.md) |
-| [RpCliLogo.tsx](../../source/components/RpCliLogo.tsx) | هویت و اطلاعات شروع رابط | [معماری](../explanation/architecture.md) |
-| [SinglePromptView.tsx](../../source/components/SinglePromptView.tsx) | چرخهٔ درخواست تکی و cleanup | [جریان اجرا](../explanation/execution-flows.md) |
-| [SlashCommandPicker.tsx](../../source/components/SlashCommandPicker.tsx) | انتخاب فرمان ثبت‌شده | [فرمان‌ها](keyboard-and-slash-commands.md) |
-| [Spinner.tsx](../../source/components/Spinner.tsx) | نمایش انتظار | [معماری](../explanation/architecture.md) |
-| [TokenSetupView.tsx](../../source/components/TokenSetupView.tsx) | فرم ورود توکن وب | [نصب](../tutorials/installation.md) |
-| [ToolConfirmation.tsx](../../source/components/ToolConfirmation.tsx) | نمایش و حل تأیید ابزار | [ابزارهای محلی](local-tools.md) |
-| [ChatStatusBar.tsx](../../source/components/chat/ChatStatusBar.tsx) | mode، search، thinking و مدل | [رابط ترمینال](../explanation/terminal-and-persian-rendering.md) |
-| [MessageRow.tsx](../../source/components/chat/MessageRow.tsx) | نمایش نقش‌های گفتگو | [رابط ترمینال](../explanation/terminal-and-persian-rendering.md) |
-| [ModelConfirmation.tsx](../../source/components/chat/ModelConfirmation.tsx) | تأیید تعویض مدل | [ادامه و مدل](../guides/resume-and-model-switching.md) |
-| [PlanConfirmation.tsx](../../source/components/chat/PlanConfirmation.tsx) | تصمیم شروع plan | [جریان اجرا](../explanation/execution-flows.md) |
-| [createLiveStream.ts](../../source/components/chat/createLiveStream.ts) | بافر و زمان‌بندی update نمایش | [جریان اجرا](../explanation/execution-flows.md) |
-| [chat/types.ts](../../source/components/chat/types.ts) | نوع پیام و state نمایش | [رابط‌ها](exported-symbols.md) |
-| [useChatSession.ts](../../source/components/chat/useChatSession.ts) | چرخهٔ عمر نشست | [جریان اجرا](../explanation/execution-flows.md) |
-| [useComposerKeys.ts](../../source/components/chat/useComposerKeys.ts) | ویرایش متن و TAB | [کلیدها](keyboard-and-slash-commands.md) |
+| [CommitView.tsx](../../source/components/CommitView.tsx) | Confirm and execute git commit | [Commit Guide](../guides/commit-messages.md) |
+| [FzfFilePicker.tsx](../../source/components/FzfFilePicker.tsx) | Internal fuzzy file picker | [Terminal Interface](../explanation/terminal-and-persian-rendering.md) |
+| [InteractiveChatView.tsx](../../source/components/InteractiveChatView.tsx) | Main chat and input control | [Execution Flows](../explanation/execution-flows.md) |
+| [MarkdownText.tsx](../../source/components/MarkdownText.tsx) | Interpret a Markdown subset for Ink | [Persian Rendering](../explanation/terminal-and-persian-rendering.md) |
+| [RpCliLogo.tsx](../../source/components/RpCliLogo.tsx) | Interface identity and startup information | [Architecture](../explanation/architecture.md) |
+| [SinglePromptView.tsx](../../source/components/SinglePromptView.tsx) | Single-request lifecycle and cleanup | [Execution Flows](../explanation/execution-flows.md) |
+| [SlashCommandPicker.tsx](../../source/components/SlashCommandPicker.tsx) | Select registered commands | [Commands](keyboard-and-slash-commands.md) |
+| [Spinner.tsx](../../source/components/Spinner.tsx) | Waiting indicator | [Architecture](../explanation/architecture.md) |
+| [TokenSetupView.tsx](../../source/components/TokenSetupView.tsx) | Web-token entry form | [Installation](../tutorials/installation.md) |
+| [ToolConfirmation.tsx](../../source/components/ToolConfirmation.tsx) | Display and resolve tool confirmation | [Local Tools](local-tools.md) |
+| [ChatStatusBar.tsx](../../source/components/chat/ChatStatusBar.tsx) | Mode, search, thinking, and model | [Terminal Interface](../explanation/terminal-and-persian-rendering.md) |
+| [MessageRow.tsx](../../source/components/chat/MessageRow.tsx) | Display chat roles | [Terminal Interface](../explanation/terminal-and-persian-rendering.md) |
+| [ModelConfirmation.tsx](../../source/components/chat/ModelConfirmation.tsx) | Confirm model switching | [Resume and Models](../guides/resume-and-model-switching.md) |
+| [PlanConfirmation.tsx](../../source/components/chat/PlanConfirmation.tsx) | Decide whether to start a plan | [Execution Flows](../explanation/execution-flows.md) |
+| [createLiveStream.ts](../../source/components/chat/createLiveStream.ts) | Buffer and schedule display updates | [Execution Flows](../explanation/execution-flows.md) |
+| [chat/types.ts](../../source/components/chat/types.ts) | Message types and display state | [Interfaces](exported-symbols.md) |
+| [useChatSession.ts](../../source/components/chat/useChatSession.ts) | Session lifecycle | [Execution Flows](../explanation/execution-flows.md) |
+| [useComposerKeys.ts](../../source/components/chat/useComposerKeys.ts) | Text editing and TAB | [Keys](keyboard-and-slash-commands.md) |
 
-## هستهٔ مشترک
+## Shared Core
 
-| فایل | مسئولیت | مرجع توضیح |
+| File | Responsibility | Explanatory Reference |
 | --- | --- | --- |
-| [apiClient.ts](../../source/core/apiClient.ts) | state API، PoW و ارسال | [انتقال](../explanation/deepseek-transport.md) |
-| [bidiText.ts](../../source/core/bidiText.ts) | ترتیب بصری فارسی با تشخیص محیط | [نمایش فارسی](../explanation/terminal-and-persian-rendering.md) |
-| [Gitignore.ts](../../source/core/Gitignore.ts) | fallback قواعد ignore | [امنیت](../explanation/security-and-privacy.md) |
-| [ListWorkspaceFiles.ts](../../source/core/ListWorkspaceFiles.ts) | فهرست Git یا پیمایش fallback | [ابزارها](local-tools.md) |
-| [LogChat.ts](../../source/core/LogChat.ts) | لاگ تشخیصی اختیاری | [ذخیره‌سازی](configuration-and-storage.md) |
-| [OpenDeepSeek.ts](../../source/core/OpenDeepSeek.ts) | بازکردن مرورگر بر اساس پلتفرم | [نصب](../tutorials/installation.md) |
-| [SessionTranscript.ts](../../source/core/SessionTranscript.ts) | رونوشت محلی و validation شناسه | [ذخیره‌سازی](configuration-and-storage.md) |
-| [textCursor.ts](../../source/core/textCursor.ts) | grapheme، موقعیت و واژه | [نمایش فارسی](../explanation/terminal-and-persian-rendering.md) |
-| [TokenConfig.ts](../../source/core/TokenConfig.ts) | توکن و preference | [تنظیمات](configuration-and-storage.md) |
-| [toolCallMarkup.ts](../../source/core/toolCallMarkup.ts) | نرمال‌سازی DSML و markup ناقص | [پروتکل](tool-protocol.md) |
-| [bidi-js.d.ts](../../source/types/bidi-js.d.ts) | declaration محلی dependency bidi | [نمایش فارسی](../explanation/terminal-and-persian-rendering.md) |
+| [apiClient.ts](../../source/core/apiClient.ts) | API state, PoW, and sending | [Transport](../explanation/deepseek-transport.md) |
+| [bidiText.ts](../../source/core/bidiText.ts) | Persian visual ordering with environment detection | [Persian Rendering](../explanation/terminal-and-persian-rendering.md) |
+| [Gitignore.ts](../../source/core/Gitignore.ts) | Fallback ignore rules | [Security](../explanation/security-and-privacy.md) |
+| [ListWorkspaceFiles.ts](../../source/core/ListWorkspaceFiles.ts) | Git listing or fallback traversal | [Tools](local-tools.md) |
+| [LogChat.ts](../../source/core/LogChat.ts) | Optional diagnostic logging | [Storage](configuration-and-storage.md) |
+| [OpenDeepSeek.ts](../../source/core/OpenDeepSeek.ts) | Platform-specific browser opening | [Installation](../tutorials/installation.md) |
+| [SessionTranscript.ts](../../source/core/SessionTranscript.ts) | Local transcript and ID validation | [Storage](configuration-and-storage.md) |
+| [textCursor.ts](../../source/core/textCursor.ts) | Graphemes, positions, and words | [Persian Rendering](../explanation/terminal-and-persian-rendering.md) |
+| [TokenConfig.ts](../../source/core/TokenConfig.ts) | Token and preferences | [Configuration](configuration-and-storage.md) |
+| [toolCallMarkup.ts](../../source/core/toolCallMarkup.ts) | Normalize DSML and incomplete markup | [Protocol](tool-protocol.md) |
+| [bidi-js.d.ts](../../source/types/bidi-js.d.ts) | Local declaration for the bidi dependency | [Persian Rendering](../explanation/terminal-and-persian-rendering.md) |
 
-## اتصال وب DeepSeek
+## DeepSeek Web Connection
 
-| فایل | مسئولیت | مرجع توضیح |
+| File | Responsibility | Explanatory Reference |
 | --- | --- | --- |
-| [Chat.ts](../../core-lib/Chat.ts) | completion، SSE و continuation | [انتقال](../explanation/deepseek-transport.md) |
-| [ChatSessions.ts](../../core-lib/ChatSessions.ts) | فهرست نشست | [انتقال](../explanation/deepseek-transport.md) |
-| [ContinueChat.ts](../../core-lib/ContinueChat.ts) | ادامهٔ stream | [انتقال](../explanation/deepseek-transport.md) |
-| [CreatePowChallenge.ts](../../core-lib/CreatePowChallenge.ts) | challenge | [انتقال](../explanation/deepseek-transport.md) |
-| [CreateSessions.ts](../../core-lib/CreateSessions.ts) | ایجاد نشست | [انتقال](../explanation/deepseek-transport.md) |
-| [DeleteSession.ts](../../core-lib/DeleteSession.ts) | درخواست حذف | [انتقال](../explanation/deepseek-transport.md) |
-| [InvalidTokenError.ts](../../core-lib/InvalidTokenError.ts) | تشخیص token نامعتبر | [انتقال](../explanation/deepseek-transport.md) |
-| [StopStream.ts](../../core-lib/StopStream.ts) | توقف پاسخ remote | [انتقال](../explanation/deepseek-transport.md) |
-| [core-lib/index.ts](../../core-lib/index.ts) | barrel export | [رابط‌ها](exported-symbols.md) |
+| [Chat.ts](../../core-lib/Chat.ts) | Completion, SSE, and continuation | [Transport](../explanation/deepseek-transport.md) |
+| [ChatSessions.ts](../../core-lib/ChatSessions.ts) | Session listing | [Transport](../explanation/deepseek-transport.md) |
+| [ContinueChat.ts](../../core-lib/ContinueChat.ts) | Stream continuation | [Transport](../explanation/deepseek-transport.md) |
+| [CreatePowChallenge.ts](../../core-lib/CreatePowChallenge.ts) | Challenge | [Transport](../explanation/deepseek-transport.md) |
+| [CreateSessions.ts](../../core-lib/CreateSessions.ts) | Session creation | [Transport](../explanation/deepseek-transport.md) |
+| [DeleteSession.ts](../../core-lib/DeleteSession.ts) | Deletion request | [Transport](../explanation/deepseek-transport.md) |
+| [InvalidTokenError.ts](../../core-lib/InvalidTokenError.ts) | Invalid-token detection | [Transport](../explanation/deepseek-transport.md) |
+| [StopStream.ts](../../core-lib/StopStream.ts) | Stop a remote response | [Transport](../explanation/deepseek-transport.md) |
+| [core-lib/index.ts](../../core-lib/index.ts) | Barrel export | [Interfaces](exported-symbols.md) |
 
-## سرور و قرارداد HTTP
+## Server and HTTP Contract
 
-| فایل | مسئولیت | مرجع توضیح |
+| File | Responsibility | Explanatory Reference |
 | --- | --- | --- |
-| [errors.ts](../../source/server/errors.ts) | ApiError و envelope خطا | [HTTP](http-api.md) |
-| [http.ts](../../source/server/http.ts) | توکن و CORS | [HTTP](http-api.md) |
-| [index.ts](../../source/server/index.ts) | endpointها و lifecycle listener | [HTTP](http-api.md) |
-| [request.ts](../../source/server/request.ts) | prompt، مدل، function parsing | [HTTP](http-api.md) |
-| [session.ts](../../source/server/session.ts) | صف، init و cache | [HTTP](http-api.md) |
-| [stream.ts](../../source/server/stream.ts) | ساخت SSE | [HTTP](http-api.md) |
-| [types.ts](../../source/server/types.ts) | نوع درخواست و پاسخ | [HTTP](http-api.md) |
+| [errors.ts](../../source/server/errors.ts) | ApiError and error envelope | [HTTP](http-api.md) |
+| [http.ts](../../source/server/http.ts) | Token and CORS | [HTTP](http-api.md) |
+| [index.ts](../../source/server/index.ts) | Endpoints and listener lifecycle | [HTTP](http-api.md) |
+| [request.ts](../../source/server/request.ts) | Prompt, model, and function parsing | [HTTP](http-api.md) |
+| [session.ts](../../source/server/session.ts) | Queue, initialization, and cache | [HTTP](http-api.md) |
+| [stream.ts](../../source/server/stream.ts) | SSE construction | [HTTP](http-api.md) |
+| [types.ts](../../source/server/types.ts) | Request and response types | [HTTP](http-api.md) |
 
-## ابزارهای محلی
+## Local Tools
 
-| فایل | مسئولیت | مرجع توضیح |
+| File | Responsibility | Explanatory Reference |
 | --- | --- | --- |
-| [arguments.ts](../../source/tools/arguments.ts) | تبدیل و validation | [پروتکل](tool-protocol.md) |
-| [describe.ts](../../source/tools/describe.ts) | آماده‌سازی پیش‌نمایش تأیید | [ابزارها](local-tools.md) |
-| [diff.ts](../../source/tools/diff.ts) | diff نمایشی ساده | [امنیت](../explanation/security-and-privacy.md) |
-| [execute.ts](../../source/tools/execute.ts) | dispatch، mode و batch | [ابزارها](local-tools.md) |
-| [index.ts](../../source/tools/index.ts) | exportهای مصرف‌کنندگان | [رابط‌ها](exported-symbols.md) |
-| [parse.ts](../../source/tools/parse.ts) | markup محلی | [پروتکل](tool-protocol.md) |
-| [paths.ts](../../source/tools/paths.ts) | cwd و کنترل containment | [امنیت](../explanation/security-and-privacy.md) |
-| [registry.ts](../../source/tools/registry.ts) | پیاده‌سازی ابزارها و شرح آن‌ها | [ابزارها](local-tools.md) |
-| [sudo.ts](../../source/tools/sudo.ts) | elevation detection و بازنویسی فرمان | [امنیت](../explanation/security-and-privacy.md) |
-| [todo.ts](../../source/tools/todo.ts) | taskهای حافظه‌ای | [ابزارها](local-tools.md) |
-| [types.ts](../../source/tools/types.ts) | قرارداد ابزار و تأیید | [رابط‌ها](exported-symbols.md) |
+| [arguments.ts](../../source/tools/arguments.ts) | Conversion and validation | [Protocol](tool-protocol.md) |
+| [describe.ts](../../source/tools/describe.ts) | Prepare confirmation previews | [Tools](local-tools.md) |
+| [diff.ts](../../source/tools/diff.ts) | Simple display diff | [Security](../explanation/security-and-privacy.md) |
+| [execute.ts](../../source/tools/execute.ts) | Dispatch, mode, and batch | [Tools](local-tools.md) |
+| [index.ts](../../source/tools/index.ts) | Consumer-facing exports | [Interfaces](exported-symbols.md) |
+| [parse.ts](../../source/tools/parse.ts) | Local markup | [Protocol](tool-protocol.md) |
+| [paths.ts](../../source/tools/paths.ts) | cwd and containment checks | [Security](../explanation/security-and-privacy.md) |
+| [registry.ts](../../source/tools/registry.ts) | Tool implementations and descriptions | [Tools](local-tools.md) |
+| [sudo.ts](../../source/tools/sudo.ts) | Elevation detection and command rewriting | [Security](../explanation/security-and-privacy.md) |
+| [todo.ts](../../source/tools/todo.ts) | In-memory tasks | [Tools](local-tools.md) |
+| [types.ts](../../source/tools/types.ts) | Tool and confirmation contract | [Interfaces](exported-symbols.md) |
 
-## دارایی‌های prompt و آزمون‌ها
+## Prompt Assets and Tests
 
-| فایل | مسئولیت | مرجع توضیح |
+| File | Responsibility | Explanatory Reference |
 | --- | --- | --- |
-| [continue.md](../../source/prompts/continue.md) | ادامهٔ کار | [پرامپت‌ها](prompts.md) |
-| [executePlan.md](../../source/prompts/executePlan.md) | اجرای برنامهٔ تأییدشده | [پرامپت‌ها](prompts.md) |
-| [gitMessage.md](../../source/prompts/gitMessage.md) | دستور پیام commit | [پرامپت‌ها](prompts.md) |
-| [prompts/index.ts](../../source/prompts/index.ts) | builder و AGENTS | [پرامپت‌ها](prompts.md) |
-| [init.md](../../source/prompts/init.md) | تولید AGENTS | [پرامپت‌ها](prompts.md) |
-| [plan.md](../../source/prompts/plan.md) | برنامه‌ریزی | [پرامپت‌ها](prompts.md) |
-| [server.md](../../source/prompts/server.md) | زمینهٔ adapter HTTP | [پرامپت‌ها](prompts.md) |
-| [system.md](../../source/prompts/system.md) | زمینهٔ عامل | [پرامپت‌ها](prompts.md) |
-| [tools.md](../../source/prompts/tools.md) | قالب و دستور ابزار | [پرامپت‌ها](prompts.md) |
-| [bidiText.test.ts](../../source/core/bidiText.test.ts) | ۵ case برای bidi | [تست](../development/testing.md) |
-| [toolCallMarkup.test.ts](../../source/core/toolCallMarkup.test.ts) | ۳ case برای markup | [تست](../development/testing.md) |
-| [tools.test.ts](../../test/tools.test.ts) | ۴ case ابزار و markup | [تست](../development/testing.md) |
-| [lines.txt](../../test/fixtures/lines.txt) | fixture خواندن بازه‌ای | [تست](../development/testing.md) |
+| [continue.md](../../source/prompts/continue.md) | Continue work | [Prompts](prompts.md) |
+| [executePlan.md](../../source/prompts/executePlan.md) | Execute an approved plan | [Prompts](prompts.md) |
+| [gitMessage.md](../../source/prompts/gitMessage.md) | Commit-message instruction | [Prompts](prompts.md) |
+| [prompts/index.ts](../../source/prompts/index.ts) | Builders and AGENTS | [Prompts](prompts.md) |
+| [init.md](../../source/prompts/init.md) | Generate AGENTS | [Prompts](prompts.md) |
+| [plan.md](../../source/prompts/plan.md) | Planning | [Prompts](prompts.md) |
+| [server.md](../../source/prompts/server.md) | HTTP adapter context | [Prompts](prompts.md) |
+| [system.md](../../source/prompts/system.md) | Agent context | [Prompts](prompts.md) |
+| [tools.md](../../source/prompts/tools.md) | Tool format and instructions | [Prompts](prompts.md) |
+| [bidiText.test.ts](../../source/core/bidiText.test.ts) | 5 bidi cases | [Testing](../development/testing.md) |
+| [toolCallMarkup.test.ts](../../source/core/toolCallMarkup.test.ts) | 3 markup cases | [Testing](../development/testing.md) |
+| [tools.test.ts](../../test/tools.test.ts) | 4 tool and markup cases | [Testing](../development/testing.md) |
+| [lines.txt](../../test/fixtures/lines.txt) | Range-reading fixture | [Testing](../development/testing.md) |
 
-## روش کنترل
+## Verification Method
 
-کنترل موجودی با `git ls-files` و مقایسهٔ مقصد پیوندهای همین صفحه انجام می‌شود. اضافه‌شدن فایل source بدون ردیف، نشانهٔ نیاز به بازبینی است. پیوند داشتن یک فایل کمکی به صفحهٔ مالک، لزوماً به معنی نیاز به یک سند مستقل برای آن فایل نیست؛ جداسازی اسناد بر اساس مسئولیت است، نه تعداد فایل‌ها.
+Check the inventory with `git ls-files` and compare it against this page's link targets. A new source file without a row indicates a need for review. Linking a helper file to its owning page does not necessarily mean it needs a separate document; documentation is separated by responsibility, not by file count.
