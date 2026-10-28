@@ -1,57 +1,75 @@
-# Development Stages and Acceptance Criteria
+# Staged Open WebUI Delivery Plan
 
-Date: `2026-10-28`; status: a stage roadmap, not an execution plan with estimates or authorization to begin coding. None of the product stages below were implemented in this work.
+Date: `2026-10-28`. Status: approved sequencing; individual milestones require execution authorization. No integration milestone is reported as implemented by these documents.
 
-## Stage Zero: Resolve Open Decisions
+## Global Contract
 
-Determine the web entry command and preservation of the `rc` default, frontend packaging, session model, and local access authentication method. The [architecture decision](architecture-decision.md) and [development rules](development-rules.md) form the review baseline. The output is a short approved design and executable acceptance tests, not scaffolding before decisions.
+Use the existing DeepSeek connection and agent, keep the current entry points, and do not build a frontend. Prefer configuration; justify a narrow adapter only when a test exposes a gap. Every milestone needs tests and explicit evidence before the next begins. Follow [WEB-002](architecture-decision.md), the [rules](development-rules.md), and the [update policy](update-policy.md).
 
-## Stage One: Web Shell and Chat
+## M0: Environment and Baseline
 
-Create a separate frontend with assistant-ui and a minimal bridge. The goals are text submission, streaming responses, errors, and Markdown/code and Persian text rendering. A limited prototype may consume the current completion endpoint, but must make clear that agent tools are not enabled through that path.
+Inspect worktree state and installed tools; preserve all existing changes. Select an Open WebUI release and installation method, verify local-service reachability, and define safe credential handling. Inventory existing test commands and capture baseline failures without unrelated fixes.
 
-Acceptance: install the artifact and run the launcher without a development server; open the browser or print a fallback URL; keep the token out of the browser; support one conversation and active run; correctly parse streams split across chunk boundaries; preserve old paths. UI controls without backend support must not be enabled.
+Acceptance: versioned environment record, a local-only topology, a documented authentication boundary, authorized installation steps, and exact baseline command results. Missing prerequisites must be reported. No public bind, real token in test fixtures, or silent global installation is allowed.
 
-## Stage Two: Lifecycle and Sessions
+## M1: Chat Connection Only
 
-Define and connect run IDs, thread-to-remote-session mapping, history contracts, and cancellation. Do not equate browser display data with the remote parent. Do not conflate stopped, error, and complete statuses; late requests must not transfer to the next run.
+Start the current RpCli service and configure Open WebUI's OpenAI-compatible connection to it. Use the advertised model and one controlled conversation. Disable auxiliary title/tag/suggestion model generation and verify that it is actually absent from observed requests. Keep tools, attachments, edit, regeneration, and multi-chat claims out of scope.
 
-Acceptance: refresh and authorized continuation, new conversations without previous-session leakage, upstream stopping within supported limits, tab disconnection during generation, process restart, and recovery according to a defined policy. Explicitly report any transport segment without cancellation support.
+Tests: discovery, text requests, normal and fragmented SSE, non-stream completion, malformed/error responses, credential failure, and client disconnect. Mock upstream responses in automated tests; do not make the routine suite depend on a real account. Browser acceptance must use Open WebUI, not an unrelated test chat page.
 
-## Stage Three: Agent and Tool Approval
+Acceptance: a submitted message and incremental reply are visible in the real interface, errors do not become false successes, secrets stay server-side, and a separately authorized DeepSeek smoke test verifies the unchanged transport path. Demonstrate that the original CLI and serve behavior remain intact. A screenshot or open page alone is insufficient.
 
-The bridge should run the existing agent with a web approval callback. Tool events and previews should use the corresponding existing logic; a browser caller may not construct arbitrary preapproved commands. Rejection, timeout, and process exit must have defined outcomes.
+Stop if stock configuration cannot support this limited experiment safely. Report the exact mismatch and proposed minimal adapter rather than implementing it without review. This milestone does not claim complete conversation or coding-agent equivalence.
 
-Acceptance: no write/edit/delete/command operation requiring approval runs before valid authorization; batch rejection remains consistent with the executor contract; reject stale approvals and approvals belonging to another run. Normal and plan modes must match the [current executor](../../source/tools/execute.ts). Web yolo remains out of scope without a separate decision.
+## M2: Conversation Correctness
 
-## Stage Four: Experience Completion and Release
+Test successive turns, New Chat, returning to an existing conversation, restart/reload behavior, and stopping a reply. Inspect whether Open WebUI propagates any usable identity and whether RpCli's session header is retained. Define mapping and persistence before implementing necessary isolation changes through a supported extension or additive adapter.
 
-Expose model, thinking, search, todo, and path selection in the UI only after actual integration. File selection is not the same as upload or automatic content submission. Message editing, regeneration, branching, concurrent runs, and public deployment are later projects with separate backend prerequisites.
+Tests: two chats with distinct context markers, repeated turns, auxiliary requests, late chunks after cancellation, stale IDs, connection loss, and process restart. Initially allow only one active generation; multiple chats do not imply simultaneous generation support.
 
-Acceptance: mobile/desktop, RTL/LTR, focus and keyboard, loading/error/empty states, stopping, and approval; include assets in the final package and do not publish the development template. Check occupied ports, unavailable browsers, missing tokens, and clean shutdown.
+Acceptance: no cross-chat context contamination, known local/remote history ownership, stable selection of the intended session, and accurate cancellation limitations. Editing, regeneration, branching, and concurrency remain disabled or explicitly unsupported until separately designed. Do not proceed to tools with unresolved session correctness.
 
-## Regression Matrix
+## M3: Read Files
 
-| Path | Criterion |
+Connect the existing read tool through the existing agent/executor. Decide the supported extension/event bridge for tool visibility before implementation. Do not substitute Open WebUI's own filesystem service for RpCli behavior.
+
+Tests in a temporary workspace: allowed file, missing file, line ranges, size cap, traversal/out-of-root path, outward symlink, and tool failure reaching the correct conversation. Never read real secrets to test rejection.
+
+Acceptance: a valid file result reaches the same agent conversation, existing read restrictions hold, errors are visible, and no file content changes. Recheck relevant known path limitations before claiming a safe boundary.
+
+## M4: Create Files
+
+Reuse the existing write tool with a verified approval bridge. Explicitly define collision handling: current write_file can overwrite, so do not claim create-only semantics without approved enforcement.
+
+Tests: correct bytes, missing parent, existing target, denied/out-of-root destination, final-component symlink, approval/denial, modified payload after preview, stale/repeated/cross-run approval, and disconnect while waiting. Use temporary files only.
+
+Acceptance: intended file content is written only following valid approval; denial and failed approval leave files unchanged. Any known destination-symlink gap blocks a safety claim and must be reported for an approved targeted fix.
+
+## M5: Edit Files
+
+Reuse exact-match edit behavior and preview/confirmation logic. Tests: unique replacement, no match, duplicate match, empty replacement, rejected path, denied approval, changed source after preview, and concurrent external modification.
+
+Acceptance: only the intended replacement occurs; failures and denial preserve contents. If preview and execution cannot be bound safely when source changes, stop and design the smallest guard rather than assuming the preview is authoritative.
+
+## M6: Delete Files
+
+Reuse the existing delete tool with explicit target approval. Tests: regular file, missing file, directory rejection, invalid path, symlink behavior, denial, replay, and disconnect. Check filesystem state rather than trusting a success message.
+
+Acceptance: only the authorized file is removed, rejected operations preserve data, and existing execution policy remains intact. No recursive deletion or shell fallback is introduced.
+
+## Regression and Reporting Gates
+
+| Area | Required evidence |
 | --- | --- |
-| Running without arguments | Same current behavior unless an explicit decision changes the default |
-| terminal | Works independently of the browser and frontend |
-| prompt and flags | Existing output and settings match the CLI reference |
-| commit | Diff and approval without unintended commits; test in a temporary repository |
-| resume | Session and transcript continuation follow the previous contract |
-| serve | No unintended changes to endpoints, envelopes, or client tools |
-| DeepSeek | Same credentials/PoW/transport; distinguish real network tests from mocks |
+| Bare rc and terminal | Existing interactive path remains available without Open WebUI |
+| Prompt and flags | Existing option handling and output behavior preserved |
+| Commit | Diff and confirmation tested in a disposable repository; no user commit created |
+| Resume | Existing session/transcript behavior preserved |
+| Serve | Existing routes, response envelopes, and client-tool semantics unchanged |
+| DeepSeek | Existing token/PoW/transport retained; mock and real-network evidence distinguished |
+| Open WebUI | Actual pinned application used for acceptance, with request behavior observed |
 
-## Testing and Reporting Policy
+Each report lists changed files, test commands, actual results, unexecuted checks, version combination, and remaining limitations. Tests reduce risk; they do not guarantee zero defects. Existing 12 declared cases are not adequate coverage of this integration by themselves; see [testing](../development/testing.md).
 
-Unit-test the adapter and bridge without a real account; test the browser with a fake backend for streaming, approval, and cancellation. Test tools only in temporary directories with harmless commands. Tests requiring a real token must not run unintentionally in public CI or expose secrets in logs.
-
-Preserve existing [development environment](../development/setup-and-scripts.md) and [testing](../development/testing.md) gates, and add frontend gates. Changing the previous test script must not remove existing steps. Each delivery must report actual commands and results, unexecuted checks, and changed files; structural document tests do not prove product functionality.
-
-## Definition of Done for Each Stage
-
-Respect the change boundaries, check that stage's criteria, do not hide unfinished capabilities, update documentation for implemented behavior, and record limitations. Only then change the stage to "implemented". Commit, push, and PR actions require an authorized request.
-
-## Status of This Document Set
-
-Only decision and rules documents have been prepared. No dependencies were installed, and no new CLI command, upstream remote, update bot, or UI was created. Current checks of these documents are limited to link destination existence, balanced code fences, and accessibility from the index; a review report for an earlier snapshot is not a web feature test result.
+Shell/elevation, upload/RAG, voice, images, public hosting, multi-user access, automatic approval, launcher changes, and a replacement state-management package are outside this plan. Commit and push require authorization.

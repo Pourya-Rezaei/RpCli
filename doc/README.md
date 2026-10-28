@@ -56,7 +56,8 @@ Documentation changes are confined to `doc/`. Application code, the [root README
 
 ## Development and Quality
 
-- [Proposed web interface and architectural decisions](web-development/README.md). This is a future design, not an implemented feature.
+- [Execution agent handoff, checklist, and reporting workflow](agent-handoff/README.md)
+- [Open WebUI integration decisions and staged delivery](web-development/README.md). This is an integration plan, not an implemented feature; no custom frontend is planned.
 - [Development setup and scripts](development/setup-and-scripts.md)
 - [Existing tests and coverage gaps](development/testing.md)
 - [Extending tools and commands](development/extending-tools-and-commands.md)

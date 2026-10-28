@@ -1,47 +1,48 @@
-# Update Intake and Evaluation Policy
+# Update and Compatibility Policy
 
-Date: `2026-10-28`; status: target policy, not configured automation.
+Date: `2026-10-28`. Status: target maintenance policy; no update automation has been configured by this documentation change.
 
-## Two Different Paths
+## Independent Upstreams
 
-| Source | Intake method | What is not automatically guaranteed |
+| Project | Update path | Compatibility responsibility |
 | --- | --- | --- |
-| Original RpCli project | An upstream remote and integration of changes into the fork | Conflict-free merges and preservation of all custom behavior |
-| assistant-ui | New dependency and lockfile versions | Compatibility of local adapters and components with the new API |
+| RpCli | Fetch the verified original repository through an upstream remote and review merges in the fork | Preserve existing CLI and DeepSeek behavior plus the integration contract |
+| Open WebUI | Upgrade its independently installed release or image | Check connection configuration, plugins, persistence, migrations, and protocol behavior |
+| Optional adapter/plugin | Maintain small integration code against documented versioned contracts | Revalidate chat identity, stream, cancellation, and approvals |
 
-"Keep the update path open" means new versions can be obtained and reviewed, not unauthorized installation at runtime or automatic merging without tests. Upstream fixes reach consumers only after intake, integration, and publication of a new fork release.
+Keeping updates available does not mean fetching latest at runtime or merging without review. Fixes reach users only after the chosen versions have been tested and deployed.
 
-## Receiving RpCli Changes
+## RpCli Maintenance
 
-`origin` is the fork repository, and upstream must be the verified original repository. No remote registration or fetch was performed in this work. Verify the real URL and branch before configuration; do not assume main or master.
+Keep origin pointing to the owner's fork. Verify the original repository URL and branch before adding an upstream remote; this document does not configure one. Review upstream changes on a separate integration branch with a clean worktree. Resolve conflicts without dropping local work, then run existing and new regression gates.
 
-Maintenance workflow: start with a clean working tree, fetch upstream, review changes, integrate on a separate review branch, resolve conflicts and run gates, then merge into the fork's development branch. Do not rebase or force-push a shared branch without coordination. Receiving upstream changes must not cause a push to the original repository; contributions use a separate PR.
+Do not force-push shared branches or rewrite history without permission. Keep integration additions separate from original modules where practical. Record the reason for each necessary core patch so an upstream fix can later replace it. Contributing back to the original project requires a separate PR, not an automatic push.
 
-To reduce conflicts, do not move original files or copy core logic into a second fork, and keep the launcher and adapter small. Record necessary core patches with clear rationale and tests so the next version can establish whether they are still needed or upstream has resolved them.
+## Open WebUI Maintenance
 
-## Receiving assistant-ui Versions
+Prefer an unmodified pinned release. Do not vendor its Svelte frontend or maintain a source fork merely to change the chat appearance. A supported extension or external adapter is preferable when configuration cannot express the required contract.
 
-Use the official package as a dependency; do not vendor or fork the library without a new, justified decision. Record the resolved version in the lockfile; reproducible releases matter more than silently obtaining latest at runtime. Pinning a version does not block updates; updates should be deliberate.
+Pin a release version or immutable image digest for reproducibility. Do not assume tags named main or latest mean a stable release. Review the selected release's notes, runtime requirements, connection settings, plugin interfaces, and security advisories before upgrading.
 
-Components copied into the project by a generator are local code and are not updated by package updates. Prefer official primitives and small wrappers. For copied files, record the source, original version, license, and custom changes, and schedule independent reviews. Generator updates must not overwrite customizations without review.
+Back up the database and file storage before an update. Use separate data directories/volumes for evaluation and normal use. Preserve required instance secrets securely. Database migrations may prevent a simple binary/image downgrade; rollback needs a compatible backup, not just the old executable.
 
-Check related assistant-ui packages together with React peer dependencies and runtime dependencies; incompatible single-package upgrades are not allowed. Minor or patch changes, especially before version 1, do not guarantee unchanged contracts; always review release notes and migration guides.
+An extension that works with one release is not automatically compatible with the next. Document the tested RpCli/Open WebUI/adapter version combination and installation method. Keep update PRs or deployment changes separate from unrelated feature work to identify failures.
 
-## Proposed Automation
+## Licensing and Branding
 
-Choose either Dependabot or Renovate later; both are not needed simultaneously. The tool should create version PRs, not merge without review. The proposed initial cadence is weekly and requires CI configuration approval; address important security issues outside this cycle.
+Open WebUI is not covered solely by a simple MIT license. Its current license includes branding conditions and exceptions; prior components may retain their original licenses. Check the [LICENSE](https://github.com/open-webui/open-webui/blob/main/LICENSE) and [LICENSE_HISTORY](https://github.com/open-webui/open-webui/blob/main/LICENSE_HISTORY) for the exact version being used or redistributed.
 
-Keep dependency PRs and upstream synchronization PRs separate where possible so failures can be traced. Record lockfile changes, API changes, test results, and rollback risks in the PR description. No bot, workflow, or secret was added at this stage.
+Retain upstream branding by default. Do not promise unrestricted rebranding, redistribute a modified package, or assume today's personal-use circumstances authorize a future public product. Review licensing before redistribution or branding changes. This policy is an engineering requirement, not legal advice.
 
-## Gates for Every Update
+## Update Gates
 
-1. Build/typecheck the core and frontend, and inspect release package contents.
-2. Test existing terminal, prompt, commit, resume, and serve paths.
-3. Test the adapter with fragmented streams, errors, and cancellation; use a fake backend without a real token.
-4. Reject operations without approval, repeated/expired approvals, and requests with an invalid Origin.
-5. Test conversations, sessions, and state isolation; check Persian text, code, and keyboard interaction.
-6. Run real DeepSeek smoke tests only in an authorized environment; do not describe mock results as proof of web service compatibility.
+1. Build/typecheck and run the existing RpCli formatting, lint, and AVA gates in a prepared environment.
+2. Exercise terminal, single prompt, commit, resume, and serve without unexpected changes.
+3. Verify model discovery, request conversion, non-stream responses, fragmented streaming, errors, and cancellation with a controlled mock service.
+4. Check chat identity and auxiliary model requests; run New Chat and history tests for implemented milestones.
+5. For implemented file milestones, test allowed/denied paths, approval rejection, replay, disconnects, and unchanged user files after denial.
+6. Run browser acceptance tests against the actual pinned Open WebUI release, then a separately authorized real-DeepSeek smoke test.
 
-A failed gate must stop the update, not be addressed by removing tests or hiding errors. Identify the previous working version and its lockfile for rollback; rollback is not a substitute for fixing incompatible changes. The fork owner is responsible for PR review until another maintainer is designated.
+Automated dependency PRs may later use one chosen tool such as Dependabot or Renovate for repository-owned dependencies. Such a bot does not automatically manage an independently deployed application's database and backups. Do not enable unattended deployment merely to receive fixes sooner.
 
-Revisit the [architecture decision](architecture-decision.md) when changing architectural direction or selecting a library version. This policy does not guarantee stability of DeepSeek's private web API; transport repairs may still be needed.
+If a gate fails, stop the upgrade and retain the tested configuration. Do not delete tests to pass. Record unverified areas explicitly, including upstream private-web-API changes that may require transport fixes. See the [delivery plan](delivery-plan.md) for staged capability boundaries.

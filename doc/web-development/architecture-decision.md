@@ -1,63 +1,83 @@
-# Web Interface Architecture Decision
+# Open WebUI Integration Decision
 
-ID: `WEB-001`; date: `2026-10-28`; status: overall direction accepted, technical details proposed.
+Decision: `WEB-002`. Date: `2026-10-28`. Baseline: RpCli `0.10.1`.
+Status: direction accepted; implementation and runtime compatibility are not verified.
 
-## Problem and Goal
+## Objective
 
-The user wants to work with the same DeepSeek service and project from a browser without depending on the terminal chat experience. The goal is to add a user-friendly interface, not replace the model service or rewrite the agent.
+Use the existing agent through Open WebUI instead of conducting everyday conversations in the terminal. Keep the terminal available. Do not build a custom frontend or replace the current DeepSeek connection. The earlier unimplemented custom-interface design is replaced by this decision.
 
-## Confirmed Decisions
+## Accepted Boundaries
 
 | ID | Decision | Consequence |
 | --- | --- | --- |
-| D-01 | Preserve the current DeepSeek web connection method | The existing web token, PoW, and transport remain the foundation |
-| D-02 | Preserve existing CLI paths | terminal, prompt, commit, resume, and serve must not regress |
-| D-03 | Add an assistant-ui-based interface | The library owns the conversation experience, not file or shell execution |
-| D-04 | Separate the interface and integration from the core | Keep upstream and library changes as localized as possible |
-| D-05 | Preserve the ability to receive updates from both projects | Do not maintain an independent library fork or extensively copy core code |
+| D-01 | Retain the DeepSeek web-session connection | Keep web tokens, PoW, transport, and current model interaction |
+| D-02 | Preserve existing entry points | Terminal, prompt, commit, resume, and serve must not regress |
+| D-03 | Run Open WebUI as a separate application | Do not import its frontend into RpCli or build replacement components |
+| D-04 | Prefer configuration over code | Add a narrow adapter only for demonstrated integration gaps |
+| D-05 | Deliver chat before file tools | Each later operation requires its own tests and approval gate |
+| D-06 | Add no state-management package now | Use existing state ownership; address backend correctness explicitly |
+| D-07 | Keep both upstream update paths open | Avoid Open WebUI source modifications and duplicated RpCli internals |
 
-## Proposed Architecture
+## Target Topology
 
 ```text
-Browser: assistant-ui + React
-              |
-       Web runtime adapter
-              |
-       Local backend bridge
-              |
- Existing agent / tools / DeepSeek transport
+Browser
+   |
+Open WebUI application and its backend
+   | OpenAI-compatible HTTP / supported integration extension
+RpCli local service
+   |
+Existing agent and DeepSeek transport
 
-Existing CLI ----------------> Existing agent / transport
+Existing terminal / prompt / commit / resume remain available
 ```
 
-The web interface displays messages and execution status. The local bridge coordinates session identity, event streaming, cancellation, and approval. The core continues to enforce execution decisions and system access. The browser bundle must not contain Node modules, the DeepSeek token, or shell execution.
+Start with `rc serve` and an independently installed Open WebUI release. Do not change bare `rc`, introduce a launcher, or bundle another frontend during milestone 1. Host, port, installation method, and authentication must be recorded for the actual environment before execution. No service is authorized for public exposure.
 
-The proposed frontend is React + Vite within an independent build boundary; this choice still requires packaging review. In the installed version, assets are prebuilt and shipped with the application; running each session must not require a development server or package downloads. Text generation still requires a DeepSeek connection.
+Open WebUI's built-in direct DeepSeek provider is not the selected connection: that would bypass RpCli. Open WebUI must call RpCli, which retains the existing upstream credential and transport.
 
-For initial chat, `useLocalRuntime` and `ChatModelAdapter` are proposed options. If ownership of complex agent state moves to an independent store, reevaluate `useExternalStoreRuntime` or an appropriate transport; do not install multiple parallel runtimes without a need. Verify the exact version and API against that version's documentation during implementation.
+## Verified Existing Constraints
 
-## Why Is Connecting Directly to the Current Server Insufficient?
+These observations are source-derived, not proof of successful interoperability:
 
-In [session.ts](../../source/server/session.ts), HTTP requests run with `toolsEnabled: false`. [request.ts](../../source/server/request.ts) converts only the last message into a prompt. [apiClient.ts](../../source/core/apiClient.ts) has shared session and generation state. Simple chat can therefore be connected, but this path does not establish parity with the CLI assistant or support multiple concurrent sessions.
+- [server/index.ts](../../source/server/index.ts) exposes model discovery and chat completion endpoints. Similar endpoint names do not establish full protocol compatibility.
+- [server/session.ts](../../source/server/session.ts), `runCompletion`, disables local tools with `toolsEnabled: false`. A working chat connection does not make the coding agent's file tools available.
+- [server/request.ts](../../source/server/request.ts), `buildCompletionPrompt`, uses only the last message. Standard history replay, edit, regeneration, and branching semantics are not implemented by that conversion.
+- [core/apiClient.ts](../../source/core/apiClient.ts) holds active session, parent message, and generation state at module scope. The server queue serializes requests but does not isolate conversations.
+- Open WebUI can issue auxiliary model requests, including title generation. Sending them to the same stateful backend may alter the active conversation. Disable them for the initial experiment or route them separately through a verified mechanism.
 
-For agent capabilities, the bridge must consume the existing [getAIResponse](../../source/actions/agent.ts) and [executor](../../source/tools/execute.ts); do not write an independent tool loop in the browser. Limited extraction of Ink-dependent logic may be necessary. "Preserve the core" does not mean absolutely prohibiting compatibility changes, but each change must be small, justified, and tested.
+## State Ownership and Package Decision
 
-## Options Compared
+| Owner | Existing state | Integration rule |
+| --- | --- | --- |
+| RpCli terminal UI | `useState` and `useRef` for messages, streaming, input, mode, and lifecycle | Leave the terminal implementation intact |
+| RpCli API client | Module-level remote session, parent ID, abort controller, and response IDs | Do not mistake shared variables for per-chat isolation |
+| RpCli HTTP service | Completion queue, initialized token, and tools cache | Map ownership explicitly if an adapter is required |
+| Local transcript storage | Persisted interactive messages | Not automatically Open WebUI history or a web session store |
+| Open WebUI | Its own UI state, conversation records, users, and storage | Use its supported contracts; do not maintain a second custom frontend store |
 
-| Option | Assessment |
-| --- | --- |
-| Rewrite the entire application in a web framework | More upstream conflicts and behavioral risk; not recommended |
-| Connect chat only to the existing completion endpoint | Suitable for a limited prototype; not a replacement for the full coding agent |
-| Add an interface with a narrow bridge | Selected proposal; core reuse with independent interface control |
-| Build a desktop application from the outset | More packaging and maintenance; outside the first release |
+Evidence: [InteractiveChatView.tsx](../../source/components/InteractiveChatView.tsx), [useChatSession.ts](../../source/components/chat/useChatSession.ts), [apiClient.ts](../../source/core/apiClient.ts), [session.ts](../../source/server/session.ts), [SessionTranscript.ts](../../source/core/SessionTranscript.ts), and [package.json](../../package.json).
 
-## Open Decisions Before Implementation
+RpCli declares no direct Redux or Zustand dependency. That does not imply that every transitive dependency or Open WebUI has no internal state mechanism. No claim about their complete dependency graphs is needed for this decision.
 
-- Web entry command: a separate command, an opt-in option, or a change to the `rc` default? The current condition is to preserve existing behavior.
-- Where exactly should the frontend and bridge live, and how should assets be published? Proposed paths are not yet contracts.
-- How should token setup work from the web? Reusing existing configuration without exposing secrets is the initial baseline; a web form needs a separate contract.
-- How should the mapping between UI identifiers, remote sessions, and history be versioned and stored?
+Adding a frontend state package would not repair shared backend sessions, cancellation ownership, or approval authorization. If integration needs a mapping, define conversation/run ownership and persistence first, and use the simplest suitable backend structure. A new dependency requires a concrete unmet requirement and separate review.
 
-Initially, allow one active run. Multiple concurrent remote sessions, multi-user deployment, real uploads, history editing, branching, and regeneration are out of scope until correct contracts exist. These limits must be reflected in UI controls, not just documentation.
+## Proposed Integration Path
 
-Review sources: [assistant-ui repository](https://github.com/assistant-ui/assistant-ui), [LocalRuntime](https://www.assistant-ui.com/docs/runtimes/custom/local-runtime), [ExternalStoreRuntime](https://www.assistant-ui.com/docs/runtimes/custom/external-store). This decision is not a tested working example. The [development rules](development-rules.md) and [delivery stages](delivery-plan.md) complement it.
+First evaluate a configuration-only OpenAI-compatible connection for one controlled conversation. Then test conversation correctness and determine whether a supported Open WebUI Pipe or a narrow external adapter is required. Do not assume an extension receives a stable chat identity or that the custom RpCli session response header is automatically reused: inspect and test the chosen version's contract.
+
+Before adding tools, choose one orchestration owner: RpCli's existing agent and executor. Do not silently replace them with Open WebUI's own tool loop or an unrelated terminal service. A file-tool approval bridge must reach the existing executor; this is integration work, not a new agent implementation.
+
+## Open Decisions
+
+- Which pinned Open WebUI release and installation method will the owner use?
+- How will the local RpCli endpoint be protected, and how will both processes reach it without public binding?
+- Which supported extension can associate Open WebUI chat identities with RpCli sessions without changing legacy API behavior?
+- How will cancellation, disconnects, tool approvals, and local/remote history ownership be represented?
+
+If these cannot be resolved with small additive changes, stop and present the incompatibility. Do not broaden scope or promise that no integration code will be necessary.
+
+## Sources and Scope
+
+[Open WebUI repository](https://github.com/open-webui/open-webui), [OpenAI-compatible connection guide](https://docs.openwebui.com/getting-started/quick-start/connect-a-provider/starting-with-openai-compatible), and [license](https://github.com/open-webui/open-webui/blob/main/LICENSE). Recheck version-specific documentation during implementation. See [development rules](development-rules.md), [delivery plan](delivery-plan.md), and [update policy](update-policy.md).

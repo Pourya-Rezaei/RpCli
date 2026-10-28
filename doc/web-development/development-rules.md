@@ -1,55 +1,58 @@
-# Development Rules and Compatibility Boundaries
+# Integration Rules
 
-Date: `2026-10-28`; status: proposed implementation requirements for [decision WEB-001](architecture-decision.md). "Must" indicates an acceptance criterion, not a claim about the current implementation.
+Date: `2026-10-28`. Status: acceptance requirements for [WEB-002](architecture-decision.md), not implemented functionality.
 
-## Preserve Existing Behavior
+## Scope and Reuse
 
-1. CLI, prompt, commit, resume, and serve must have regression tests; removing the old interface or changing the `rc` default requires separate approval.
-2. Do not replace the DeepSeek transport or credentials with another service or official SDK; consume the existing connection.
-3. Do not copy agent or tool logic. Reuse it through a narrow internal API; unavoidable core changes must include rationale and tests.
-4. New web endpoints must use a separate namespace; do not change existing public endpoint envelopes or semantics without authorization.
-5. Keep frontend packages and configuration as separate as possible from terminal TypeScript and builds. Importing browser dependencies must not force old paths to load the DOM.
+1. Use Open WebUI as a separate maintained application. Do not scaffold a custom frontend or modify Open WebUI source by default.
+2. Preserve the existing DeepSeek web-token, PoW, and transport path. Do not switch to a direct provider connection that bypasses RpCli.
+3. Preserve bare `rc`, terminal, prompt flags, commit, resume, and the current serve contract. New behavior must be opt-in and additive unless explicitly approved.
+4. Reuse the existing agent, parser, executor, file tools, and confirmation logic. Do not copy them into a plugin or implement a second tool loop.
+5. Prefer configuration. Demonstrate and test a compatibility gap before introducing a small adapter. Backend changes need a specific reason and regression coverage.
+6. Do not add Redux, Zustand, a new frontend, a replacement database, or a new model SDK without an approved unmet requirement.
 
-## Integration Contract
+## Initial Experiment
 
-Exact endpoint names will be determined later; required behavior is already defined:
+The first milestone permits controlled text chat and streaming only. Use a single conversation, one active request, and no coding tools. Disable auxiliary title, tag, suggestion, or other model-generation tasks for the experiment; verify actual requests rather than relying only on settings labels.
 
-| Concept | Requirement |
-| --- | --- |
-| Run | Unique identifier and explicit status; one active run in the first release |
-| Message | Stable identifier and ordering; text and reasoning can be displayed separately |
-| Stream | Distinguishable events for text, tools, awaiting approval, completion, cancellation, and errors |
-| Approval | Operation identifiers bound to the run and workspace; reject reuse or approval of another operation |
-| Cancellation | Propagated from the browser to that same run; late callbacks must not attach to a new run |
-| Disconnection | Pending approval must not be accepted automatically; define a timeout or safe cancellation |
-| History | Explicit UI/remote mapping; selecting a new conversation must not leak into the previous session |
+Do not claim multi-chat isolation, replay, edit, regeneration, file access, or full OpenAI compatibility. If stock Open WebUI cannot enforce the limited scope, report that limitation and stop before real-data testing. Do not silently patch either project to make a demonstration appear successful.
 
-SSE or the final transport must have an appropriate parser; do not treat a network chunk as a complete event. The adapter must follow the selected runtime's format; do not confuse cumulative state with deltas. AI SDK streams, OpenAI SSE, and the internal protocol are not interchangeable.
+## Conversation and Run Ownership
 
-## Approval and Security
+The integration must distinguish Open WebUI chat IDs, RpCli remote session IDs, message IDs, and active run IDs. A serialized queue is not isolation. Selecting New Chat must not continue the previous remote conversation. Auxiliary requests must not mutate user-chat context.
 
-- Tool access must occur only in Node; the browser requests operations but does not create operating-system permissions.
-- Loopback is the baseline, but is insufficient: Host/Origin validation, a restrictive CORS policy, and local session access authentication are required.
-- Local bridge credentials must be separate from the upstream token; do not expose secrets in URLs, logs, localStorage, or the bundle. Design the bootstrap method before implementation.
-- The server controls mode, workspace, and operation permissions; browser-supplied data alone is not authoritative.
-- Message text, Markdown, and tool output are untrusted; do not execute raw HTML or active content without a safe policy.
-- Token input must be masked, and API responses must never return the stored token.
-- File and shell tools retain their existing limitations; an attractive interface does not create a sandbox. Account for [current risks](../explanation/security-and-privacy.md) in bridge design.
+If session mapping is needed, define ownership, lifetime, restart behavior, and allowed concurrent activity before implementing it. Keep Open WebUI history and DeepSeek history distinct. UI transcript edits do not prove that the upstream parent or context changed.
 
-## Local Lifecycle
+Cancellation must address the intended run; late chunks and callbacks must not update a newer run. Disconnect is not successful completion. Identify existing transport operations that cannot be interrupted rather than promising universal cancellation.
 
-The launch cwd must be the fixed workspace; the browser may not arbitrarily select system paths without a permission contract. The local listener and workspace must belong to the same instance. If the port is occupied, select a free port and print a usable address; the exact command syntax will be determined in launcher design.
+## Tool and Approval Contract
 
-Ctrl+C and exit signals must clean up pending approvals, runs, and the listener. Closing a tab is not the same as ending the Node process; specify disconnection and session retention behavior separately. Include interface assets in the release package instead of downloading them on each run.
+File operations are later milestones. Read first, then create, edit, and delete. Shell execution, elevation, broad workspace access, and automatic approval are outside this sequence.
 
-## User Experience
+For each mutating operation, the backend must bind approval to the actual operation, run, workspace, and intended path/content. Reject stale, repeated, cross-run, or altered approvals. Denial and disconnect must not default to approval. The browser may request an operation but cannot grant itself filesystem authority.
 
-Persian text must reach the browser in its original logical order; do not apply terminal-specific bidi transformations to web text. Test mixed-direction text and code blocks with RTL/LTR cases. Do not present unfinished controls: disable or omit upload, regenerate, and edit when backend support is absent.
+Preserve the current executor's batch failure/decline behavior and normal/plan policies. Do not activate yolo for the web integration without a new decision. Use existing preview helpers where suitable, and do not describe a simplified preview as a complete safety guarantee.
 
-Stop and approval buttons must reflect actual server status. Keyboard navigation, visible focus, accessible control names, and mobile behavior are acceptance requirements. Plan and normal modes must remain aligned with actual executor policy; do not enable web yolo in the first release without an explicit decision.
+The current `write_file` tool overwrites existing paths. A create milestone must explicitly test and document overwrite behavior; do not label it create-only unless a separately approved restriction enforces that contract.
 
-## Code Change Rules
+## Security and Data
 
-Keep changes focused and small; avoid unrelated cleanup, generated-file changes, and broad reformatting. Keep the registry, parser, and tool descriptions synchronized when contracts change. Review affected code, tests, and documentation as one logical change. Bridge API changes must also have a clear version or compatibility policy.
+- Keep services local by default. Open WebUI authentication does not automatically secure direct access to RpCli.
+- Define network reachability for the selected native or container deployment. Container localhost is not the host's loopback; do not solve reachability by exposing an unauthenticated RpCli endpoint publicly.
+- Keep the DeepSeek credential in RpCli's server environment/configuration. It is not the Open WebUI user password or an independent local-service access key.
+- Do not commit secrets, conversation databases, volumes, transcripts, or personal connection configuration.
+- Do not mount the entire host filesystem into Open WebUI to simulate reuse of RpCli tools.
+- Community plugins can execute privileged backend code. Review dependencies, authentication, and permissions before installation.
+- Existing file-path and shell risks remain; see the [security analysis](../explanation/security-and-privacy.md). Integration does not create a sandbox.
 
-Do not accept changes claiming that "updates will never conflict". The correct criteria are limited dependencies, tests, and a review process. The [update policy](update-policy.md) and [delivery criteria](delivery-plan.md) provide complementary requirements.
+## Test and Change Discipline
+
+Each milestone adds focused automated tests and a reproducible acceptance procedure. Mock the DeepSeek boundary for routine tests. Use temporary files and repositories for mutations; never test destructive behavior on user files. Run a separately authorized real-DeepSeek smoke test where relevant, and label it distinctly from mock coverage.
+
+Preserve existing build, lint, and test gates. Record exact commands, results, environment versions, and tests not run. Do not install dependencies, change global configuration, register upstream remotes, commit, push, or broaden scope without authorization for that action.
+
+Keep implementation diffs focused. Do not clean up unrelated code, change legacy API semantics, or hide failing tests. Every dependency or configuration change must state how it affects [updates](update-policy.md).
+
+## Execution Handoff
+
+An execution agent must first read this directory and AGENTS guidance, inspect the actual worktree, and execute only the approved milestone from the [delivery plan](delivery-plan.md). Existing edits must be preserved. When blocked by unsupported session or approval behavior, report evidence and the smallest proposed resolution; wait for approval before moving to another milestone.
